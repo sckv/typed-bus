@@ -2,6 +2,13 @@ import { Event } from './event';
 import { InternalTransport } from './internal-transport';
 import { Transport } from './transports';
 
+import { executionContext } from '../context/execution-context';
+
+type PublishOptions<T extends boolean> = {
+  excludeTransportNames?: string[];
+  hook?: T;
+};
+
 export class TypedBusClass {
   transports: Transport[] = [];
 
@@ -12,15 +19,24 @@ export class TypedBusClass {
   /**
    *  @param excludeTransportNames - optional: this will exclude transports where this message is published to
    * */
-  async publish(eventData: any, excludeTransportNames?: string[]): Promise<void> {
+  async publish<T extends boolean = false>(
+    eventData: any,
+    options: PublishOptions<T> = {},
+  ): Promise<void> {
     const publishedTransports: string[] = [];
+    const event = Event.create(eventData, options.hook);
+
+    if (!executionContext.currentExecution) {
+      executionContext.newContext().addEvent(event);
+    }
 
     const publishPromises = this.transports.map((transport) => {
-      if (excludeTransportNames && excludeTransportNames.includes(transport.name)) {
+      if (options.excludeTransportNames && options.excludeTransportNames.includes(transport.name)) {
         return;
       }
+
       publishedTransports.push(transport.name);
-      return transport.publish(Event.create(eventData));
+      return transport.publish(event);
     });
 
     const results = await Promise.allSettled(publishPromises);

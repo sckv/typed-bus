@@ -3,15 +3,18 @@ import { cloneDeep, isEqual } from 'lodash';
 
 import { deepFreeze } from './utils';
 
-const uidGenerate = hyperid();
+const uuidGenerate = hyperid();
+const hookIdGenerate = hyperid();
 
 export class Event<T = any> {
   uuid: string;
+  hookId?: string;
   timestamp: number;
   payload: T;
 
-  private constructor(payload: any) {
-    this.uuid = uidGenerate();
+  private constructor(payload: any, hook?: boolean) {
+    this.uuid = uuidGenerate();
+    this.hookId = hook ? hookIdGenerate() : undefined;
     this.timestamp = Date.now();
     this.payload = deepFreeze(payload);
 
@@ -41,7 +44,7 @@ export class Event<T = any> {
     return this.payload;
   }
 
-  static create<T>(payload: T) {
-    return new Event<T>(cloneDeep(payload));
+  static create<T>(payload: T, hook?: boolean) {
+    return new Event<T>(cloneDeep(payload), hook);
   }
 }
