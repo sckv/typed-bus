@@ -1,0 +1,29 @@
+{
+  "name": "typed-bus",
+  "version": "0.0.1",
+  "description": "Typed bus for internal or external communications, handy for Event Sourcing",
+  "main": "index.js",
+  "author": "Konstanin Knyazev <konstantinknyazev@outlook.com>",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/jest": "^27.4.0",
+    "@types/lodash": "^4.14.178",
+    "@types/node": "^17.0.15",
+    "@typescript-eslint/eslint-plugin": "^5.10.2",
+    "@typescript-eslint/parser": "^5.10.2",
+    "eslint": "^8.8.0",
+    "eslint-plugin-import": "^2.25.4",
+    "eslint-plugin-jest": "^26.0.0",
+    "jest": "^27.5.0",
+    "ts-jest": "^27.1.3",
+    "typescript": "^4.5.5"
+  },
+  "dependencies": {
+    "fp-ts": "^2.11.8",
+    "hyperid": "^3.0.0",
+    "io-ts": "^2.2.16",
+    "lodash": "^4.17.21",
+    "lru-native2": "^1.2.5",
+    "reflect-metadata": "^0.1.13"
+  }
+}
