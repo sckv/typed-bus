@@ -15,7 +15,7 @@ export class InternalTransport extends Transport {
   lastEvent: Event | undefined;
 
   async _publish(event: Event<any>): Promise<PromiseSettledResult<void>[]> {
-    if (this.lastEvent && this.lastEvent?.isAfter(event)) {
+    if (this.lastEvent?.equals(event)) {
       console.error(
         'Next event to publish was produced before than the last published event. Discarded',
       );
@@ -27,10 +27,10 @@ export class InternalTransport extends Transport {
       if (!isLeft(decode)) {
         await consumer.fn(event.payload);
       } else {
-        if (Object.keys(decode.left).length < 3) {
+        if (Object.keys(decode.left).length < 2) {
           console.log(reporter(decode));
           console.log(
-            `Event just have less than 3 errors, maybe there's a malformed object for a consumer ${consumer.fn.name} with type ${consumer.contract.name}`,
+            `Event just have 1 error, maybe there's a malformed object for a consumer ${consumer.fn.name} with type ${consumer.contract.name}`,
           );
         }
 
@@ -42,6 +42,11 @@ export class InternalTransport extends Transport {
   }
 
   addConsumer(contract: iots.Any, fn: () => any) {
-    this.consumers.push({ contract: iots.union([contract, EventBaseType]), fn });
+    const contractIntersection = iots.intersection([
+      iots.type({ payload: contract }),
+      EventBaseType,
+    ]);
+
+    this.consumers.push({ contract: contractIntersection, fn });
   }
 }

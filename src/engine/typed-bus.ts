@@ -28,6 +28,8 @@ export class TypedBusClass {
 
     if (!executionContext.currentExecution) {
       executionContext.newContext().addEvent(event);
+    } else {
+      executionContext.currentExecution.addEvent(event);
     }
 
     const publishPromises = this.transports.map((transport) => {

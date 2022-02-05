@@ -65,17 +65,24 @@ export const reporter = <T>(validation: t.Validation<T>) =>
     fold(
       (errors) =>
         Object.entries(errors.map(formatValidationError).reduce(combineErrors, {})).reduce(
-          (acc, data) => {
+          (acc, data, index) => {
             const [path, contextData] = data as any as [
               string,
               { received: string; expected: string[] },
             ];
+
             const expected = contextData.expected.join(' | ').replace(/"/gi, '');
             const received = contextData.received.replace(/"/gi, '');
-            acc[path] = 'Expected: ' + expected + ' type - received: ' + received;
+
+            acc[`Error ${index + 1}`] = {
+              message: `Expected at ${path}: ` + expected + ' type - received: ' + received,
+              path,
+              expected,
+              received,
+            };
             return acc as any;
           },
-          {} as { [k: string]: string },
+          {} as { message: string; path: string; expected: string; received: string },
         ) as any,
       () => [],
     ),
