@@ -3,6 +3,8 @@ import { cloneDeep, isEqual } from 'lodash';
 
 import { deepFreeze } from './utils';
 
+import { executionContext } from '../context/execution-context';
+
 const uuidGenerate = hyperid();
 const hookIdGenerate = hyperid();
 
@@ -14,13 +16,20 @@ export class Event<T = any> {
 
   private constructor(payload: any, hook?: boolean) {
     this.uuid = uuidGenerate();
-    this.hookId = hook ? hookIdGenerate() : undefined;
+    this.hookId = this.setHookId(hook);
     this.timestamp = Date.now();
     this.payload = deepFreeze(payload);
 
     Object.freeze(this);
   }
 
+  setHookId(hook?: boolean) {
+    if (executionContext.currentExecution?.currentEvent?.hookId) {
+      return executionContext.currentExecution?.currentEvent?.hookId;
+    }
+
+    return hook ? hookIdGenerate() : undefined;
+  }
   equals(to: Event) {
     if (this.uuid !== to.uuid) return false;
     if (this.isBefore(to) || this.isAfter(to)) return false;

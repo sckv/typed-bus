@@ -22,7 +22,7 @@ class ConsumerTest {
 new ConsumerTest();
 
 setTimeout(() => {
-  TypedBus.publish({ name: 'test', age: 4 });
+  TypedBus.publish({ name: 'test', age: 4 }, { hook: true });
 }, 1500);
 
 setTimeout(() => {
