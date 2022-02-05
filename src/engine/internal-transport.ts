@@ -12,16 +12,8 @@ const orphanEvents: Event[] = [];
 export class InternalTransport extends Transport {
   name = 'internal';
   consumers: { contract: iots.Any; fn: (...args: any[]) => any }[] = [];
-  lastEvent: Event | undefined;
 
   async _publish(event: Event<any>): Promise<PromiseSettledResult<void>[]> {
-    if (this.lastEvent?.equals(event)) {
-      console.error(
-        'Next event to publish was produced before than the last published event. Discarded',
-      );
-      return [];
-    }
-
     const publishedConsumers = this.consumers.map(async (consumer) => {
       const decode = consumer.contract.decode(event);
       if (!isLeft(decode)) {

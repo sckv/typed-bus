@@ -30,9 +30,13 @@ export class Event<T = any> {
 
     return hook ? hookIdGenerate() : undefined;
   }
+
+  getUniqueStamp() {
+    return `${this.timestamp}-${this.uuid}`;
+  }
+
   equals(to: Event) {
-    if (this.uuid !== to.uuid) return false;
-    if (this.isBefore(to) || this.isAfter(to)) return false;
+    if (this.uuid !== to.uuid && this.timestamp !== to.timestamp) return false;
   }
 
   payloadEquals(to: Event) {
@@ -41,12 +45,12 @@ export class Event<T = any> {
     return isEqual(this.payload, to.payload);
   }
 
-  isBefore(comparedTo: Event) {
-    return this.timestamp < comparedTo.timestamp;
+  isBefore(event: Event) {
+    return this.timestamp < event.timestamp;
   }
 
-  isAfter(comparedTo: Event) {
-    return this.timestamp > comparedTo.timestamp;
+  isAfter(event: Event) {
+    return this.timestamp > event.timestamp;
   }
 
   toJSON() {
