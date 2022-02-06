@@ -33,7 +33,7 @@ $ yarn add typed-bus
 ## Start using like this
 
 ```ts
-import { TypedBus } from 'typed-bus';
+import { TypedBus, Consume } from 'typed-bus';
 import * as iots from 'io-ts';
 
 class ConsumerTest {
