@@ -6,6 +6,19 @@ Features:
 
 - Listens from and publishes to any settled transports
 - Easy interface for the transports definition
+- Tracks all events record (business operations chain)
+- Shared bus for all transports defined
+- Can exclude transports where to publish
+
+## Install
+
+```bash
+$ npm install typed-bus
+
+...
+
+$ yarn add typed-bus
+```
 
 ## Start using like this
 
