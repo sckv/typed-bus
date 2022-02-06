@@ -4,11 +4,12 @@ Based on `io-ts` types, this bus provides a handy interface to publish and consu
 
 Features:
 
-- Listens from and publishes to any settled transports
-- Easy interface for the transports definition
-- Tracks all events record (business operations chain)
-- Shared bus for all transports defined
-- Can exclude transports where to publish
+- Listens from and publishes to any settled and instantiated transports
+- Awaits for transport to be ready (async)
+- Easy interface for the definition of the transports
+- Tracks all events records (business operations chain)
+- A shared bus for all the transports
+- Can exclude the transports which the consumer should not be listening to
 
 ## Install
 
