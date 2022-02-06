@@ -31,6 +31,12 @@ class ConsumerTest {
   async justConsumer(data: any) {
     console.log('I just consumed money event', data);
   }
+
+  // this method wont be listening to events what came from `kafka` transport
+  @Consume(iots.type({ name: iots.string, age: iots.number }, { dontListenTo: ['kafka'] }))
+  async nameAgeConsumerCommand(data: any) {
+    console.log('I just consumed money event', data);
+  }
 }
 
 // somewhere instantiate the class with correct dependencies

@@ -10,21 +10,28 @@ import { TypedBus } from '../engine/instance';
  * */
 export function Consume<I extends iots.Any>(
   contract: I,
-  combine?: {
-    with: iots.Any;
-    name: string;
-  },
+  options: {
+    dontListenTo?: string[];
+    combine?: {
+      with: iots.Any;
+      name: string;
+    };
+  } = {},
 ) {
   return (
     target: any,
     _propertyName: string,
     propertyDescriptor: PropertyDescriptor,
   ): PropertyDescriptor => {
-    const rightContract = combine
-      ? iots.intersection([contract, combine.with], combine.name)
+    const rightContract = options?.combine
+      ? iots.intersection([contract, options.combine.with], options.combine.name)
       : contract;
 
-    TypedBus.addConsumer(rightContract, propertyDescriptor.value.bind(target));
+    TypedBus.addConsumer(
+      rightContract,
+      propertyDescriptor.value.bind(target),
+      options.dontListenTo,
+    );
 
     return propertyDescriptor;
   };
