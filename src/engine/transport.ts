@@ -21,16 +21,9 @@ export abstract class Transport {
   consumers: ConsumerMethod[] = [];
   ready = false;
   waitForReady = true;
-
   lastEvent: Event | undefined;
 
   constructor() {
-    if (typeof this.addConsumer !== 'function') {
-      throw new Error(
-        `Transport ${this.constructor.name} does not implement an addConsumer method.`,
-      );
-    }
-
     this.startAsyncTransport()
       .then(() => (this.ready = true))
       .catch(console.error);
@@ -55,6 +48,8 @@ export abstract class Transport {
     }
 
     cache.set(event.getUniqueStamp(), true);
+
+    this.lastEvent = event;
 
     return {
       ...(await this._publish(event)),
