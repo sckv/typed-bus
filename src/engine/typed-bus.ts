@@ -1,7 +1,7 @@
 import { Event } from './event';
-import { InternalTransport } from './internal-transport';
-import { Transport } from './transports';
+import { Transport } from './transport';
 
+import { InternalTransport } from '../transports/internal-transport';
 import { executionContext } from '../context/execution-context';
 
 type PublishOptions<T extends boolean> = {
@@ -26,11 +26,7 @@ export class TypedBusClass {
     const publishedTransports: string[] = [];
     const event = Event.create(eventData, options.hook);
 
-    if (!executionContext.currentExecution) {
-      executionContext.newContext().addEvent(event);
-    } else {
-      executionContext.currentExecution.addEvent(event);
-    }
+    this.storeInContext(event);
 
     const publishPromises = this.transports.map((transport) => {
       if (options.excludeTransportNames && options.excludeTransportNames.includes(transport.name)) {
@@ -48,6 +44,14 @@ export class TypedBusClass {
         console.error(`Error publishing to transport ${publishedTransports[index]}`, result.reason);
       }
     });
+  }
+
+  storeInContext(event: Event): void {
+    if (!executionContext.currentExecution) {
+      executionContext.newContext().addEvent(event);
+    } else {
+      executionContext.currentExecution.addEvent(event);
+    }
   }
 
   /**

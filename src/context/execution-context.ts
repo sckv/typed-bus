@@ -57,9 +57,9 @@ const hook = asyncHooks.createHook({
   destroy,
 });
 
-executionContext.enable = () => {
-  executionContext.enabled = true;
-  return hook.enable();
-};
+// enable by default
+// TODO: see implications
+// TODO: change to AsyncStorage
+hook.enable();
 
 export { executionContext };

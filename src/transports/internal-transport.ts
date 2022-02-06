@@ -1,19 +1,19 @@
-import * as iots from 'io-ts';
 import { isLeft } from 'fp-ts/lib/Either';
 
-import { Event } from './event';
-import { Transport } from './transports';
-
-import { EventBaseType } from '../validation/event-base-type';
+import { Event } from '../engine/event';
+import { Consumer, Transport } from '../engine/transport';
 import { reporter } from '../validation/reporter';
-
-const orphanEvents: Event[] = [];
 
 export class InternalTransport extends Transport {
   name = 'internal';
-  consumers: { contract: iots.Any; fn: (...args: any[]) => any }[] = [];
+  consumers: Consumer[] = [];
 
-  async _publish(event: Event<any>): Promise<PromiseSettledResult<void>[]> {
+  async _publish(event: Event): Promise<{
+    orphanEvents: Event[];
+    publishedEvents: PromiseSettledResult<void>[];
+  }> {
+    const orphanEvents: Event[] = [];
+
     const publishedConsumers = this.consumers.map(async (consumer) => {
       const decode = consumer.contract.decode(event);
       if (!isLeft(decode)) {
@@ -30,15 +30,9 @@ export class InternalTransport extends Transport {
       }
     });
 
-    return await Promise.allSettled(publishedConsumers);
-  }
-
-  addConsumer(contract: iots.Any, fn: () => any) {
-    const contractIntersection = iots.intersection([
-      iots.type({ payload: contract }),
-      EventBaseType,
-    ]);
-
-    this.consumers.push({ contract: contractIntersection, fn });
+    return {
+      orphanEvents,
+      publishedEvents: await Promise.allSettled(publishedConsumers),
+    };
   }
 }
