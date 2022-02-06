@@ -1,4 +1,3 @@
-import { boolean } from 'fp-ts';
 import { isLeft } from 'fp-ts/lib/Either';
 
 import { Event } from '../engine/event';
@@ -13,10 +12,12 @@ export class InternalTransport extends Transport {
     orphanEvent?: boolean;
     publishedConsumers: PromiseSettledResult<void>[];
   }> {
-    const publishedConsumers = this.consumers.map(async (consumer) => {
+    const publishedConsumers: Promise<void>[] = [];
+
+    for (const consumer of this.consumers) {
       const decode = consumer.contract.decode(event);
       if (!isLeft(decode)) {
-        await consumer.fn(event.payload);
+        publishedConsumers.push(consumer.fn(event.payload));
       } else {
         if (Object.keys(decode.left).length < 2) {
           console.log(reporter(decode));
@@ -25,7 +26,7 @@ export class InternalTransport extends Transport {
           );
         }
       }
-    });
+    }
 
     return {
       orphanEvent: publishedConsumers.length === 0 ? true : false,
