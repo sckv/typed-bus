@@ -81,6 +81,7 @@ export class TypedBusClass {
 
   addTransport(transport: Transport) {
     if (transport instanceof Transport && !this.transports.includes(transport)) {
+      transport.startAsyncTransport().catch(console.error);
       this.transports.push(transport);
     } else {
       throw new Error(

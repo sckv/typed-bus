@@ -4,17 +4,27 @@ import * as iots from 'io-ts';
 import { TypedBus } from '../engine/instance';
 
 /**
- * Decorator @Consume(contract).
+ * Decorator `@Consume(contract, combine?: { with, name })`.
  * Consumes an event that matches the io-ts type.
  *
  * */
-export function Consume<I extends iots.Any>(contract: I) {
+export function Consume<I extends iots.Any>(
+  contract: I,
+  combine?: {
+    with: iots.Any;
+    name: string;
+  },
+) {
   return (
     target: any,
     _propertyName: string,
     propertyDescriptor: PropertyDescriptor,
   ): PropertyDescriptor => {
-    TypedBus.addConsumer(contract, propertyDescriptor.value.bind(target));
+    const rightContract = combine
+      ? iots.intersection([contract, combine.with], combine.name)
+      : contract;
+
+    TypedBus.addConsumer(rightContract, propertyDescriptor.value.bind(target));
 
     return propertyDescriptor;
   };

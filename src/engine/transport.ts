@@ -95,14 +95,15 @@ export abstract class Transport {
       if (isLeft(decode)) {
         return reporter(decode);
       }
-      return true;
+      return 'ok';
     };
 
     this.consumers.push({ contract, exec: fn, matchEvent });
   }
 
   async startAsyncTransport() {
-    if (typeof this._startAsyncTransport === 'function') await this._startAsyncTransport();
+    if (!this.ready && typeof this._startAsyncTransport === 'function')
+      await this._startAsyncTransport();
   }
 
   abstract _startAsyncTransport?(): Promise<void>;
