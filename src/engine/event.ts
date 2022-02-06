@@ -3,7 +3,7 @@ import { cloneDeep, isEqual } from 'lodash';
 
 import { deepFreeze } from './utils';
 
-import { executionContext } from '../context/execution-context';
+import { context } from '../context/context';
 
 const uuidGenerate = hyperid();
 const hookIdGenerate = hyperid();
@@ -29,8 +29,8 @@ export class Event<T = any> {
   }
 
   setHookId(hook?: boolean) {
-    if (executionContext.currentExecution?.currentEvent?.hookId) {
-      return executionContext.currentExecution?.currentEvent?.hookId;
+    if (context.current?.currentEvent?.hookId) {
+      return context.current?.currentEvent?.hookId;
     }
 
     return hook ? hookIdGenerate() : undefined;

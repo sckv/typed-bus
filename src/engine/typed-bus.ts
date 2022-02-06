@@ -3,7 +3,7 @@ import { Transport } from './transport';
 import { OrphanEventsStore } from './orphan-events-store';
 
 import { InternalTransport } from '../transports/internal-transport';
-import { executionContext } from '../context/execution-context';
+import { context } from '../context/context';
 
 type PublishOptions<T extends boolean> = {
   excludeTransportNames?: string[];
@@ -59,10 +59,10 @@ export class TypedBusClass {
   }
 
   storeInContext(event: Event): void {
-    if (!executionContext.currentExecution) {
-      executionContext.newContext().addEvent(event);
+    if (!context.current) {
+      context.newContext().addEvent(event);
     } else {
-      executionContext.currentExecution.addEvent(event);
+      context.current.addEvent(event);
     }
   }
 

@@ -1,8 +1,7 @@
 import * as iots from 'io-ts';
 
-import { TypedBus } from './index';
-
-import { Consume } from './decorators/consume';
+import { TypedBus } from '../index';
+import { Consume } from '../decorators/consume';
 
 class ConsumerTest {
   @Consume(iots.type({ name: iots.string, age: iots.number }))
