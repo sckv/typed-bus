@@ -4,12 +4,20 @@ Based on `io-ts` types, this bus provides a handy interface to publish and consu
 
 Features:
 
+- Versatile types by io-ts (nominal, branded, logical, shape types, etc)
 - Listens from and publishes to any settled and instantiated transports
 - Awaits for transport to be ready (async)
 - Easy interface for the definition of the transports
 - Tracks all events records (business operations chain)
 - A shared bus for all the transports
 - Can exclude the transports which the consumer should not be listening to
+
+Soon:
+- You can provide a source connector where all the orphan events can be dumped (e.g. NoSQL storage as Mongo)
+- You can provide a source connectot where all the consumed events can be dumped
+- Handy API to tie the even with the business operation & aggregate mutation
+- Rebuild the graph for any event from its unique ID and visualize it (and the data changes)
+- Hook into a response event with a determined contract (handy for HTTP requests that await for a response)
 
 ## Install
 
