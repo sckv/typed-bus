@@ -1,12 +1,8 @@
-import { isLeft } from 'fp-ts/lib/Either';
-
 import { Event } from '../engine/event';
-import { Consumer, Transport } from '../engine/transport';
-import { reporter } from '../validation/reporter';
+import { Transport } from '../engine/transport';
 
 export class InternalTransport extends Transport {
   name = 'internal';
-  consumers: Consumer[] = [];
 
   async _publish(event: Event): Promise<{
     orphanEvent?: boolean;
@@ -15,14 +11,14 @@ export class InternalTransport extends Transport {
     const publishedConsumers: Promise<void>[] = [];
 
     for (const consumer of this.consumers) {
-      const decode = consumer.contract.decode(event);
-      if (!isLeft(decode)) {
-        publishedConsumers.push(consumer.fn(event.payload));
+      const okOrError = consumer.matchEvent(event);
+      if (okOrError === true) {
+        publishedConsumers.push(consumer.exec(event.payload));
       } else {
-        if (Object.keys(decode.left).length < 2) {
-          console.log(reporter(decode));
+        if (Object.keys(okOrError).length < 2) {
+          console.log(okOrError);
           console.log(
-            `Event just have 1 error, maybe there's a malformed object for a consumer ${consumer.fn.name} with type ${consumer.contract.name}`,
+            `Event just have 1 error, maybe there's a malformed object for a consumer ${consumer.exec.name} with type ${consumer.contract.name}`,
           );
         }
       }
@@ -32,5 +28,9 @@ export class InternalTransport extends Transport {
       orphanEvent: publishedConsumers.length === 0 ? true : false,
       publishedConsumers: await Promise.allSettled(publishedConsumers),
     };
+  }
+
+  _startAsyncTransport(): Promise<void> {
+    return Promise.resolve();
   }
 }

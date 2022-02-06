@@ -3,7 +3,6 @@ import * as iots from 'io-ts';
 import { TypedBus } from './index';
 
 import { Consume } from './decorators/consume';
-import { executionContext } from './context/execution-context';
 
 class ConsumerTest {
   @Consume(iots.type({ name: iots.string, age: iots.number }))
