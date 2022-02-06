@@ -13,6 +13,8 @@ export class Event<T = any> {
   hookId?: string;
   timestamp: number;
   payload: T;
+  orphanTransports?: string[] = [];
+  publishedTransports?: string[] = [];
 
   private constructor(payload: any, hook?: boolean) {
     this.uuid = uuidGenerate();
@@ -20,7 +22,10 @@ export class Event<T = any> {
     this.timestamp = Date.now();
     this.payload = deepFreeze(payload);
 
-    Object.freeze(this);
+    Object.defineProperty(this, 'uuid', { writable: false, configurable: false });
+    Object.defineProperty(this, 'hookId', { writable: false, configurable: false });
+    Object.defineProperty(this, 'timestamp', { writable: false, configurable: false });
+    Object.defineProperty(this, 'payload', { writable: false, configurable: false });
   }
 
   setHookId(hook?: boolean) {
@@ -55,6 +60,16 @@ export class Event<T = any> {
 
   toJSON() {
     return this.payload;
+  }
+
+  addOrphanTransport(transport: string) {
+    if (!this.orphanTransports) this.orphanTransports = [];
+    if (!this.orphanTransports.includes(transport)) this.orphanTransports.push(transport);
+  }
+
+  addPublishedTransport(transport: string) {
+    if (!this.publishedTransports) this.publishedTransports = [];
+    if (!this.publishedTransports.includes(transport)) this.publishedTransports.push(transport);
   }
 
   static create<T>(payload: T, hook?: boolean) {

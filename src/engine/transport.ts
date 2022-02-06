@@ -12,6 +12,7 @@ const cache = new LRUCache({ maxLoadFactor: 2, size: 10000, maxAge: 10000 });
 export abstract class Transport {
   abstract name: string;
   abstract consumers: Consumer[];
+
   lastEvent: Event | undefined;
 
   constructor() {
@@ -22,12 +23,16 @@ export abstract class Transport {
     }
   }
 
-  async publish(event: Event): Promise<any> {
+  async publish(event: Event): Promise<{
+    orphanEvent?: boolean;
+    transport: string;
+    publishedConsumers: PromiseSettledResult<void>[];
+  } | null> {
     if (cache.get(event.getUniqueStamp()) || this.lastEvent?.isAfter(event)) {
       console.error(
         `Next event to publish was produced before than the last published event or it's equal. Discarded`,
       );
-      return;
+      return null;
     }
 
     if (typeof this._publish !== 'function') {
@@ -36,12 +41,10 @@ export abstract class Transport {
 
     cache.set(event.getUniqueStamp(), true);
 
-    const { orphanEvents } = await this._publish(event);
-    if (orphanEvents.length) {
-      console.error(
-        `${orphanEvents.length} orphan events were produced after publishing to transport ${this.name}`,
-      );
-    }
+    return {
+      ...(await this._publish(event)),
+      transport: this.name,
+    };
   }
 
   addConsumer(contract: iots.Any, fn: () => any) {
@@ -54,7 +57,7 @@ export abstract class Transport {
   }
 
   abstract _publish(event: Event): Promise<{
-    orphanEvents: Event[];
-    publishedEvents: PromiseSettledResult<void>[];
+    orphanEvent?: boolean;
+    publishedConsumers: PromiseSettledResult<void>[];
   }>;
 }

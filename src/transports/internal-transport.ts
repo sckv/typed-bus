@@ -1,3 +1,4 @@
+import { boolean } from 'fp-ts';
 import { isLeft } from 'fp-ts/lib/Either';
 
 import { Event } from '../engine/event';
@@ -9,11 +10,9 @@ export class InternalTransport extends Transport {
   consumers: Consumer[] = [];
 
   async _publish(event: Event): Promise<{
-    orphanEvents: Event[];
-    publishedEvents: PromiseSettledResult<void>[];
+    orphanEvent?: boolean;
+    publishedConsumers: PromiseSettledResult<void>[];
   }> {
-    const orphanEvents: Event[] = [];
-
     const publishedConsumers = this.consumers.map(async (consumer) => {
       const decode = consumer.contract.decode(event);
       if (!isLeft(decode)) {
@@ -25,14 +24,12 @@ export class InternalTransport extends Transport {
             `Event just have 1 error, maybe there's a malformed object for a consumer ${consumer.fn.name} with type ${consumer.contract.name}`,
           );
         }
-
-        orphanEvents.push(event);
       }
     });
 
     return {
-      orphanEvents,
-      publishedEvents: await Promise.allSettled(publishedConsumers),
+      orphanEvent: publishedConsumers.length === 0 ? true : false,
+      publishedConsumers: await Promise.allSettled(publishedConsumers),
     };
   }
 }

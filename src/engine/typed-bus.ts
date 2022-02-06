@@ -1,5 +1,6 @@
 import { Event } from './event';
 import { Transport } from './transport';
+import { OrphanEventsStore } from './orphan-events-store';
 
 import { InternalTransport } from '../transports/internal-transport';
 import { executionContext } from '../context/execution-context';
@@ -11,6 +12,7 @@ type PublishOptions<T extends boolean> = {
 
 export class TypedBusClass {
   transports: Transport[] = [];
+  orphanEventsStore = new OrphanEventsStore();
 
   constructor() {
     this.transports.push(new InternalTransport());
@@ -42,8 +44,18 @@ export class TypedBusClass {
     results.forEach((result, index) => {
       if (result.status === 'rejected') {
         console.error(`Error publishing to transport ${publishedTransports[index]}`, result.reason);
+      } else {
+        if (!result.value) return;
+
+        if (result.value.orphanEvent) {
+          event.addOrphanTransport(result.value.transport);
+        } else {
+          event.addPublishedTransport(result.value.transport);
+        }
       }
     });
+
+    if (event.orphanTransports?.length) this.orphanEventsStore.addEvent(event);
   }
 
   storeInContext(event: Event): void {
