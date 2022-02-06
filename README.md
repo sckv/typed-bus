@@ -88,8 +88,8 @@ export class KafkaTransport extends Transport {
 
     await this.consumer.run({
       eachMessage: async ({ topic, partition, message }) => {
-        // we get the data from Kafka and publish it in the bus
-        await TypedBus.publish({ topic, partition, message, fromKafka: true /** IMPORTANT */ });
+        // we hook into the data from Kafka and publish it into the bus
+        await TypedBus.publish({ topic, partition, message });
       },
     });
   }
@@ -102,10 +102,7 @@ export class KafkaTransport extends Transport {
 
     // this is how we understand that the messages sent should be into kafka
     // All events payload with { topic, messages... }
-    // NOTE: important having `fromKafka` property to know if the event was received from kafka
-    if (
-      !event.payload.fromKafka &&
-      event.payload.topic &&
+    if (event.payload.topic &&
       event.payload.messages &&
       event.payload.messages instanceof Array
     ) {
