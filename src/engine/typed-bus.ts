@@ -55,7 +55,7 @@ export class TypedBusClass {
       }
     });
 
-    if (event.orphanTransports?.length) this.orphanEventsStore.addEvent(event);
+    if (event.orphanTransports?.size) this.orphanEventsStore.addEvent(event);
   }
 
   storeInContext(event: Event): void {

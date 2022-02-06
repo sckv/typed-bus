@@ -13,8 +13,8 @@ export class Event<T = any> {
   hookId?: string;
   timestamp: number;
   payload: T;
-  orphanTransports?: string[] = [];
-  publishedTransports?: string[] = [];
+  orphanTransports?: Set<string>;
+  publishedTransports?: Set<string>;
 
   private constructor(payload: any, hook?: boolean) {
     this.uuid = uuidGenerate();
@@ -63,13 +63,13 @@ export class Event<T = any> {
   }
 
   addOrphanTransport(transport: string) {
-    if (!this.orphanTransports) this.orphanTransports = [];
-    if (!this.orphanTransports.includes(transport)) this.orphanTransports.push(transport);
+    if (!this.orphanTransports) this.orphanTransports = new Set(transport);
+    else this.orphanTransports.add(transport);
   }
 
   addPublishedTransport(transport: string) {
-    if (!this.publishedTransports) this.publishedTransports = [];
-    if (!this.publishedTransports.includes(transport)) this.publishedTransports.push(transport);
+    if (!this.publishedTransports) this.publishedTransports = new Set(transport);
+    else this.publishedTransports.add(transport);
   }
 
   static create<T>(payload: T, hook?: boolean) {
