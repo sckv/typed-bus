@@ -7,7 +7,7 @@ import { Event } from './event';
 import { EventBaseType } from '../validation/event-base-type';
 import { reporter } from '../validation/reporter';
 
-export type MatchEvent = (event: Event) => true | { [k: string]: string };
+export type MatchEvent = (event: Event) => 'ok' | { [k: string]: string };
 export type ConsumerMethod = {
   contract: iots.Any;
   exec: (...args: any[]) => any;

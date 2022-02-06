@@ -30,7 +30,7 @@ export class TypedBusClass {
 
     this.storeInContext(event);
 
-    const publishPromises = this.transports.map((transport) => {
+    const publishPromises = this.transports.map(async (transport) => {
       if (options.excludeTransportNames && options.excludeTransportNames.includes(transport.name)) {
         return;
       }

@@ -12,7 +12,7 @@ export class InternalTransport extends Transport {
 
     for (const consumer of this.consumers) {
       const okOrError = consumer.matchEvent(event);
-      if (okOrError === true) {
+      if (okOrError === 'ok') {
         publishedConsumers.push(consumer.exec(event.payload));
       } else {
         if (Object.keys(okOrError).length < 2) {

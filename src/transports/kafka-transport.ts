@@ -1,13 +1,13 @@
-import { Consumer as KafkaConsumer, Kafka, Producer } from 'kafkajs';
+import { Consumer, Kafka, Producer } from 'kafkajs';
 
 import { Event } from '../engine/event';
 import { Transport } from '../engine/transport';
 
-class KafkaTransport extends Transport {
+export class KafkaTransport extends Transport {
   name = 'kafka';
 
   producer!: Producer;
-  consumer!: KafkaConsumer;
+  consumer!: Consumer;
 
   kafka: Kafka;
 
@@ -30,20 +30,7 @@ class KafkaTransport extends Transport {
 
     await this.consumer.run({
       eachMessage: async ({ topic, partition, message }) => {
-        const event = Event.create({ topic, partition, message });
-        for (const consumer of this.consumers) {
-          const okOrError = consumer.matchEvent(event);
-          if (okOrError === true) {
-            consumer.exec(event.payload);
-          } else {
-            if (Object.keys(okOrError).length < 2) {
-              console.log(okOrError);
-              console.log(
-                `Event just have 1 error, maybe there's a malformed object for a consumer ${consumer.exec.name} with type ${consumer.contract.name}`,
-              );
-            }
-          }
-        }
+        this.publish(Event.create({ topic, partition, message, fromKafka: true }));
       },
     });
   }
@@ -52,13 +39,39 @@ class KafkaTransport extends Transport {
     orphanEvent?: boolean;
     publishedConsumers: PromiseSettledResult<void>[];
   }> {
-    const { topic, messages } = event.payload;
+    const publishedConsumers: any[] = [];
 
-    await this.producer.send({ topic, messages });
+    // this is how we understand that the messages sent should be into kafka
+    // All events payload with {topic, messages...}
+    // NOTE: important having `fromKafka` property to know if the event was received from kafka
+    if (
+      !event.payload.fromKafka &&
+      event.payload.topic &&
+      event.payload.messages &&
+      event.payload.messages instanceof Array
+    ) {
+      publishedConsumers.push(this.producer.send(event.payload));
+    }
+
+    publishedConsumers.push(
+      ...this.consumers.map(async (consumer) => {
+        const okOrError = consumer.matchEvent(event);
+        if (okOrError === 'ok') {
+          await consumer.exec(event.payload);
+        } else {
+          if (Object.keys(okOrError).length < 2) {
+            console.log(okOrError);
+            console.log(
+              `Event just have 1 error, maybe there's a malformed object for a consumer ${consumer.exec.name} with type ${consumer.contract.name}`,
+            );
+          }
+        }
+      }),
+    );
 
     return {
       orphanEvent: false,
-      publishedConsumers: await Promise.allSettled([topic]),
+      publishedConsumers: await Promise.allSettled(publishedConsumers),
     };
   }
 }
