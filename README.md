@@ -11,11 +11,12 @@ Features:
 - Tracks all events records (business operations chain)
 - A shared bus for all the transports
 - Can exclude the transports which the consumer should not be listening to
+- Can exclude the transports where the event is going to be published to
 
 Soon:
 - You can provide a source connector where all the orphan events can be dumped (e.g. NoSQL storage as Mongo)
-- You can provide a source connectot where all the consumed events can be dumped
-- Handy API to tie the even with the business operation & aggregate mutation
+- You can provide a source connector where all the consumed events can be dumped
+- Handy Context API to tie the event with the business operation & aggregate mutation
 - Rebuild the graph for any event from its unique ID and visualize it (and the data changes)
 - Hook into a response event with a determined contract (handy for HTTP requests that await for a response)
 
