@@ -88,10 +88,8 @@ export class KafkaTransport extends Transport {
 
     await this.consumer.run({
       eachMessage: async ({ topic, partition, message }) => {
-        // we get the data from Kafka and publish it for internal consumer methods
-        await this._publish(
-          Event.create({ topic, partition, message, fromKafka: true /** IMPORTANT */ }),
-        );
+        // we get the data from Kafka and publish it in the bus
+        await TypedBus.publish({ topic, partition, message, fromKafka: true /** IMPORTANT */ });
       },
     });
   }
