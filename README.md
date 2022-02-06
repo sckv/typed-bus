@@ -61,7 +61,7 @@ await TypedBus.publish({ amount: 1234, currency: 'EUR' });
 ```ts
 import { Consumer, Kafka, Producer } from 'kafkajs';
 
-import { Event, Transport } from 'typed-bus';
+import { Event, Transport, TypedBus } from 'typed-bus';
 
 export class KafkaTransport extends Transport {
   name = 'kafka';
