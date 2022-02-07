@@ -1,3 +1,5 @@
+import * as iots from 'io-ts';
+
 import { Event } from './event';
 import { Transport } from './transport';
 import { OrphanEventsStore } from './orphan-events-store';
@@ -6,7 +8,7 @@ import { InternalTransport } from '../transports/internal-transport';
 import { context } from '../context/context';
 
 type PublishOptions<T extends boolean> = {
-  excludeTransportNames?: string[];
+  onlySendTo?: string[];
   hook?: T;
 };
 
@@ -18,9 +20,6 @@ export class TypedBusClass {
     this.transports.push(new InternalTransport());
   }
 
-  /**
-   *  @param excludeTransportNames - optional: this will exclude transports where this message is published to
-   * */
   async publish<T extends boolean = false>(
     eventData: any,
     options: PublishOptions<T> = {},
@@ -31,12 +30,15 @@ export class TypedBusClass {
     this.storeInContext(event);
 
     const publishPromises = this.transports.map(async (transport) => {
-      if (options.excludeTransportNames && options.excludeTransportNames.includes(transport.name)) {
-        return;
+      if (options.onlySendTo && options.onlySendTo.includes(transport.name)) {
+        publishedTransports.push(transport.name);
+        return transport.publish(event);
+      } else if (!options.onlySendTo) {
+        publishedTransports.push(transport.name);
+        return transport.publish(event);
       }
 
-      publishedTransports.push(transport.name);
-      return transport.publish(event);
+      throw new Error('There is no transport for this event');
     });
 
     const results = await Promise.allSettled(publishPromises);
@@ -67,16 +69,27 @@ export class TypedBusClass {
   }
 
   /**
-   *  @param excludeTransportNames - optional: this will exclude transports where this consumer is triggered from
+   *  @param listenTo - optional: this will add more transports to be listened to
    * */
-  addConsumer(contract: any, fn: () => any, excludeTransportNames?: string[]) {
+  addConsumer(contract: iots.Any, exec: () => any, listenTo?: string[]) {
+    const transportsList = listenTo && listenTo instanceof Array ? listenTo : ['internal'];
+    let orphanConsumer = true;
     this.transports.forEach((transport) => {
-      if (excludeTransportNames && excludeTransportNames.includes(transport.name)) {
-        return;
+      if (transportsList.includes(transport.name)) {
+        transport.addConsumer(contract, exec);
+        orphanConsumer = false;
       }
 
-      transport.addConsumer(contract, fn);
+      return;
     });
+
+    if (orphanConsumer) {
+      console.log(
+        `There is no transports '${listenTo?.join(',')}' for this consumer ${contract.name} - ${
+          exec.name
+        }.`,
+      );
+    }
   }
 
   addTransport(transport: Transport) {
