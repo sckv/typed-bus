@@ -11,7 +11,7 @@ import { TypedBus } from '../engine/instance';
 export function Consume<I extends iots.Any>(
   contract: I,
   options: {
-    dontListenTo?: string[];
+    listenTo?: string[];
     combine?: {
       with: iots.Any;
       name: string;
@@ -27,11 +27,7 @@ export function Consume<I extends iots.Any>(
       ? iots.intersection([contract, options.combine.with], options.combine.name)
       : contract;
 
-    TypedBus.addConsumer(
-      rightContract,
-      propertyDescriptor.value.bind(target),
-      options.dontListenTo,
-    );
+    TypedBus.addConsumer(rightContract, propertyDescriptor.value.bind(target), options.listenTo);
 
     return propertyDescriptor;
   };

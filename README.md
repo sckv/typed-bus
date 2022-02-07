@@ -10,10 +10,11 @@ Features:
 - Easy interface for the definition of the transports
 - Tracks all events records (business operations chain)
 - A shared bus for all the transports
-- Can exclude the transports which the consumer should not be listening to
-- Can exclude the transports where the event is going to be published to
+- You can set what transport the consumer should be listening to (`listenTo`)
+- You can explicitly where the event is going to be published to (`onlySendTo`: [what transport])
 
 Soon:
+
 - You can provide a source connector where all the orphan events can be dumped (e.g. NoSQL storage as Mongo)
 - You can provide a source connector where all the consumed events can be dumped
 - Handy Context API to tie the event with the business operation & aggregate mutation
@@ -60,8 +61,20 @@ await TypedBus.publish({ amount: 1234, currency: 'EUR' });
 
 ```ts
 import { Consumer, Kafka, Producer } from 'kafkajs';
+import * as iots from 'io-ts';
 
 import { Event, Transport, TypedBus } from 'typed-bus';
+
+const KafkaSendMessagePattern = iots.type({
+  topic: iots.string,
+  messages: iots.array(
+    iots.type({
+      key: iots.string,
+      value: iots.unknown,
+      headers: iots.unknown,
+    }),
+  ),
+});
 
 export class KafkaTransport extends Transport {
   name = 'kafka';
@@ -70,9 +83,13 @@ export class KafkaTransport extends Transport {
   consumer!: Consumer;
   kafka!: Kafka;
 
+  // those are the default values for the transport class
+  // as kafka is an async transport, we can omit this exact definitions
+  ready = false;
+  waitForReady = true;
+
   async _startAsyncTransport(): Promise<void> {
     // we start all the kafka connections
-
     this.kafka = new Kafka({
       clientId: 'my-app',
       brokers: ['kafka1:9092', 'kafka2:9092'],
@@ -88,47 +105,18 @@ export class KafkaTransport extends Transport {
 
     await this.consumer.run({
       eachMessage: async ({ topic, partition, message }) => {
-        // we hook into the data from Kafka and publish it into the bus
-        await TypedBus.publish({ topic, partition, message });
+        // we hook into the data from Kafka and publish it into the internal bus
+        // so we avoid resending received messages by any error in 'kafka' transport lane
+        await TypedBus.publish({ topic, partition, message }, { onlySendTo: ['internal'] });
       },
     });
-  }
 
-  async _publish(event: Event): Promise<{
-    orphanEvent?: boolean;
-    publishedConsumers: PromiseSettledResult<void>[];
-  }> {
-    const publishedConsumers: any[] = [];
-
-    // this is how we understand that the messages sent should be into kafka
-    // All events payload with { topic, messages... }
-    if (event.payload.topic &&
-      event.payload.messages &&
-      event.payload.messages instanceof Array
-    ) {
-      publishedConsumers.push(this.producer.send(event.payload));
-    }
-
-    publishedConsumers.push(
-      ...this.consumers.map(async (consumer) => {
-        const okOrError = consumer.matchEvent(event);
-        if (okOrError === 'ok') {
-          await consumer.exec(event.payload);
-        } else {
-          if (Object.keys(okOrError).length < 2) {
-            console.log(okOrError);
-            console.log(
-              `Event just have 1 error, maybe there's a malformed object for a consumer ${consumer.exec.name} with type ${consumer.contract.name}`,
-            );
-          }
-        }
-      }),
-    );
-
-    return {
-      orphanEvent: false,
-      publishedConsumers: await Promise.allSettled(publishedConsumers),
-    };
+    // we declare a unique consumer for this 'kafka' transport
+    // which is the actual producer.push method
+    // as we dont control where it goes from our system
+    TypedBus.addConsumer(KafkaSendMessagePattern, this.producer.push.bind(this.producer), {
+      listenTo: ['kafka'],
+    });
   }
 }
 ```

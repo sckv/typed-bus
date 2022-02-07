@@ -43,17 +43,37 @@ export abstract class Transport {
       return null;
     }
 
-    if (typeof this._publish !== 'function') {
-      throw new Error(`Transport ${this.constructor.name} does not implement a _publish method.`);
-    }
-
     cache.set(event.getUniqueStamp(), true);
 
     this.lastEvent = event;
 
+    if (typeof this._publish === 'function') {
+      return {
+        ...(await this._publish(event)),
+        transport: this.name,
+      };
+    }
+
+    const publishedConsumers: any[] = [];
+
+    for (const consumer of this.consumers) {
+      const okOrError = consumer.matchEvent(event);
+      if (okOrError === 'ok') {
+        publishedConsumers.push(consumer.exec(event.payload));
+      } else {
+        if (Object.keys(okOrError).length < 2) {
+          console.log(okOrError);
+          console.log(
+            `Event just have 1 error, maybe there's a malformed object for a consumer ${consumer.exec.name} with type ${consumer.contract.name}`,
+          );
+        }
+      }
+    }
+
     return {
-      ...(await this._publish(event)),
       transport: this.name,
+      orphanEvent: publishedConsumers.length === 0 ? true : false,
+      publishedConsumers: await Promise.allSettled(publishedConsumers),
     };
   }
 
@@ -101,8 +121,8 @@ export abstract class Transport {
       await this._startAsyncTransport();
   }
 
-  abstract _startAsyncTransport?(): Promise<void>;
-  abstract _publish(event: Event): Promise<{
+  _startAsyncTransport?(): Promise<void>;
+  _publish?(event: Event): Promise<{
     orphanEvent?: boolean;
     publishedConsumers: PromiseSettledResult<void>[];
   }>;
