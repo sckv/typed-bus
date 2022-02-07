@@ -33,12 +33,12 @@ $ yarn add typed-bus
 
 ## Glossary
 
-- orphanEvent - an event that has been published into the bus and found no consumers that match it's shape, it goes to a separate list of orphan events, handy for debugging
-- consumer - ANY function that is added to a consumer's list and have a io-ts type shape for it's execution
-- transport - an abstraction for connections internally or externally out of the system
-- event - completely immutable, timestamped with unique ID entity that is being translated to the consumers
-- typed-bus - a bus engine that is in charge of creating Events from received payload to publish and send that Event
-- events are Immutable, pushed ONLY in a chronological order at level of transport and de-duplicated
+- `event` - completely immutable, timestamped with unique ID payload and metadata that is being transported to the consumers
+- `consumer` - ANY function that is added to a consumer's list and have a io-ts type shape for it's execution
+- `transport` - an abstraction for connections internally or externally out of the system
+- `typed-bus` - a bus engine that is in charge of creating Events from received payload to publish them to correct registered transports
+- `orphanEvent` - an event that has been published into the bus and found no consumers that match it's shape within all the registered or/and selected transports, it goes to a separate list of orphan events, handy for debugging
+- events are Immutable, pushed ONLY in a chronological order at level of transport and are de-duplicated
 
 ## Start using like this
 
