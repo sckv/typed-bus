@@ -10,7 +10,7 @@ class ConsumerTest {
 
     const hookResponse = await TypedBus.publish(
       { amount: 1234, currency: 'EUR' },
-      { hook: iots.type({ hookProp: iots.string, hookValue: iots.number }) },
+      { hook: iots.type({ hookProp: iots.literal('value'), hookValue: iots.number }) },
     );
 
     console.log('received from hook resolution', hookResponse);
@@ -20,7 +20,7 @@ class ConsumerTest {
   async anotherConsumer(data: any) {
     console.log('I just consumed the money event', data);
     await TypedBus.publish({ some: 'event', is: 'orphan' });
-    await TypedBus.publish({ hookProp: 'some value', hookValue: 123 });
+    await TypedBus.publish({ hookProp: 'value', hookValue: 123 });
     console.log(TypedBus.orphanEventsStore);
   }
 }

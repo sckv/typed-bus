@@ -12,7 +12,7 @@ const generateConsumerId = hyperid();
 
 type PublishOptions<T> = {
   onlySendTo?: string[];
-  hook?: iots.Any;
+  hook?: T extends iots.Any ? T : never;
 };
 
 export class TypedBusClass {
@@ -23,10 +23,10 @@ export class TypedBusClass {
     this.transports.push(new InternalTransport());
   }
 
-  async publish<T = false>(
+  async publish<T, R = T extends iots.Any ? iots.OutputOf<T> : void>(
     eventData: any,
     options: PublishOptions<T> = {},
-  ): Promise<void | unknown> {
+  ): Promise<R> {
     const publishedTransports: string[] = [];
     const event = Event.create(eventData, typeof options.hook !== undefined);
 
@@ -34,7 +34,7 @@ export class TypedBusClass {
     let hookPromise: unknown = undefined;
 
     if (options.hook) {
-      hookPromise = new Promise<unknown>((resolve, reject) => {
+      hookPromise = new Promise<any>((resolve, reject) => {
         const consumerId = { id: '' };
         const timoutRef = setTimeout(reject, 1000);
 
@@ -42,7 +42,7 @@ export class TypedBusClass {
           this.removeConsumer(consumerId.id);
           clearTimeout(timoutRef);
 
-          resolve(resultData);
+          resolve(resultData as any);
         };
 
         consumerId.id = this.addConsumer(options.hook!, resolver, { hookId: event.hookId }).id;
@@ -79,7 +79,7 @@ export class TypedBusClass {
 
     if (event.orphanTransports?.size) this.orphanEventsStore.addEvent(event);
 
-    return hookPromise;
+    return hookPromise as any;
   }
 
   storeInContext(event: Event): void {
