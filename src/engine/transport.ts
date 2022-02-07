@@ -12,6 +12,7 @@ export type ConsumerMethod = {
   contract: iots.Any;
   exec: (...args: any[]) => any;
   matchEvent: MatchEvent;
+  id: string;
 };
 
 const cache = new LRUCache({ maxLoadFactor: 2, size: 10000, maxAge: 10000 });
@@ -99,10 +100,11 @@ export abstract class Transport {
     }
   }
 
-  addConsumer(contract: iots.Any, fn: () => any): void {
+  addConsumer(contract: iots.Any, fn: () => any, consumerId: string, hookId?: string): void {
     const contractIntersection = iots.intersection([
       iots.type({ payload: contract }),
       EventBaseType,
+      iots.type({ hookId: hookId ? iots.literal(hookId) : iots.unknown }),
     ]);
 
     const matchEvent: MatchEvent = (event: Event) => {
@@ -113,7 +115,15 @@ export abstract class Transport {
       return 'ok';
     };
 
-    this.consumers.push({ contract, exec: fn, matchEvent });
+    this.consumers.push({ contract, exec: fn, matchEvent, id: consumerId });
+  }
+
+  removeConsumer(consumerId: string) {
+    if (typeof consumerId !== 'string') {
+      throw new Error('Consumer id must be a string to remove');
+    }
+
+    this.consumers = this.consumers.filter(({ id }) => id !== consumerId);
   }
 
   async startAsyncTransport() {
