@@ -1,6 +1,6 @@
 {
   "name": "typed-bus",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Typed bus for internal or external communications, handy for Event Sourcing",
   "main": "index.js",
   "author": "Konstanin Knyazev <konstantinknyazev@outlook.com>",
