@@ -60,7 +60,7 @@ await TypedBus.publish({ amount: 1234, currency: 'EUR' });
 ## Wait for a hook resolution
 
 ```ts
-import { TypedBus, Consume } from 'typed-bus';
+import { TypedBus } from 'typed-bus';
 import * as iots from 'io-ts';
 
 class ExpressController {
@@ -68,7 +68,7 @@ class ExpressController {
   async addMoreMoney(req: Request, res: Response) {
     console.log('I just received http request to add more money with body', req.body);
 
-    // this will wait 10 second for the event resolution
+    // this will wait 10 seconds for the event resolution
     const data = await TypedBus.publish(req.body, {
       hook: iots.type({ outcome: iots.literal('MONEY_ADDED'), account: iots.string }),
     });
@@ -78,9 +78,7 @@ class ExpressController {
 }
 
 // somewhere instantiate the class with correct dependencies
-new ConsumerTest();
-
-// somewhere in the app call
+new ExpressController();
 ```
 
 ## Define your transport
