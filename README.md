@@ -5,7 +5,7 @@ Based on `io-ts` types, this bus provides a handy interface to publish and consu
 Features:
 
 - Versatile types by io-ts (nominal, branded, logical, shape types, etc)
-- Listens from and publishes to any settled and instantiated transports
+- Listens to and publishes to any settled and instantiated transports
 - Awaits for transport to be ready (async)
 - Easy interface for the definition of the transports
 - Tracks all events records (business operations chain)
