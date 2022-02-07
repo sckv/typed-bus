@@ -31,6 +31,15 @@ $ npm install typed-bus
 $ yarn add typed-bus
 ```
 
+## Glossary
+
+- orphanEvent - an event that has been published into the bus and found no consumers that match it's shape, it goes to a separate list of orphan events, handy for debugging
+- consumer - ANY function that is added to a consumer's list and have a io-ts type shape for it's execution
+- transport - an abstraction for connections internally or externally out of the system
+- event - completely immutable, timestamped with unique ID entity that is being translated to the consumers
+- typed-bus - a bus engine that is in charge of creating Events from received payload to publish and send that Event
+- events are Immutable, pushed ONLY in a chronological order at level of transport and de-duplicated
+
 ## Start using like this
 
 ```ts
@@ -55,6 +64,29 @@ new ConsumerTest();
 
 // somewhere in the app call
 await TypedBus.publish({ amount: 1234, currency: 'EUR' });
+```
+
+## You can add and remove consumers in runtime anywhere in the app
+
+```ts
+import { TypedBus, Consume } from 'typed-bus';
+import * as iots from 'io-ts';
+
+const TypeShapeToConsume = iots.type({ amount: iots.number, currency: iots.string });
+
+let consumerId = {};
+function consumerFunction(shape: iots.OutputOf<TypeShapeToConsume>) {
+  // some logic, logging, etc
+  ...
+
+  // after that is done, if you want you can remove that consumer function
+  TypedBus.removeConsumer(consumerId.id)
+}
+
+consumerId = TypedBus.addConsumer(TypeShapeToConsume, consumerFunction);
+
+// anywhere in the app
+TypedBus.publish({ amount: 1234, currency: 'EUR' })
 ```
 
 ## Wait for a hook resolution
@@ -87,7 +119,7 @@ new ExpressController();
 import { Consumer, Kafka, Producer } from 'kafkajs';
 import * as iots from 'io-ts';
 
-import { Event, Transport, TypedBus } from 'typed-bus';
+import { Transport, TypedBus } from 'typed-bus';
 
 const KafkaSendMessagePattern = iots.type({
   topic: iots.string,
@@ -141,6 +173,34 @@ export class KafkaTransport extends Transport {
     TypedBus.addConsumer(KafkaSendMessagePattern, this.producer.push.bind(this.producer), {
       listenTo: ['kafka'],
     });
+  }
+}
+```
+
+## If you want more control of your transport, you can implement \_publish method
+
+```ts
+import * as iots from 'io-ts';
+
+import { Event, Transport, TypedBus } from 'typed-bus';
+
+export class MyTransport extends Transport {
+  name = 'another-transport';
+
+  async _startAsyncTransport(): Promise<void> {
+    // do some async instantiation if that is needed
+    ...
+  }
+
+  async _publish(event: Event): {
+    orphanEvent?: boolean;
+    publishedConsumers: PromiseSettledResult<void>[];
+  } {
+    // do some checks and verifications
+    // you have access to all internal API's of transport
+    // such as `this.consumers` list that gives you a fine grained control
+    // you can set custom rules that should be executed before the event is sent to the consumers
+    ... custom control rules, logging, etc ...
   }
 }
 ```
