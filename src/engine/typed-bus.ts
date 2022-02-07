@@ -1,4 +1,5 @@
 import * as iots from 'io-ts';
+import hyperid from 'hyperid';
 
 import { Event } from './event';
 import { Transport } from './transport';
@@ -7,9 +8,11 @@ import { OrphanEventsStore } from './orphan-events-store';
 import { InternalTransport } from '../transports/internal-transport';
 import { context } from '../context/context';
 
-type PublishOptions<T extends boolean> = {
+const generateConsumerId = hyperid();
+
+type PublishOptions<T> = {
   onlySendTo?: string[];
-  hook?: T;
+  hook?: iots.Any;
 };
 
 export class TypedBusClass {
@@ -20,14 +23,31 @@ export class TypedBusClass {
     this.transports.push(new InternalTransport());
   }
 
-  async publish<T extends boolean = false>(
+  async publish<T = false>(
     eventData: any,
     options: PublishOptions<T> = {},
-  ): Promise<void> {
+  ): Promise<void | unknown> {
     const publishedTransports: string[] = [];
-    const event = Event.create(eventData, options.hook);
+    const event = Event.create(eventData, typeof options.hook !== undefined);
 
     this.storeInContext(event);
+    let hookPromise: unknown = undefined;
+
+    if (options.hook) {
+      hookPromise = new Promise<unknown>((resolve, reject) => {
+        const consumerId = { id: '' };
+        const timoutRef = setTimeout(reject, 1000);
+
+        const resolver = (resultData: unknown) => {
+          this.removeConsumer(consumerId.id);
+          clearTimeout(timoutRef);
+
+          resolve(resultData);
+        };
+
+        consumerId.id = this.addConsumer(options.hook!, resolver, { hookId: event.hookId }).id;
+      });
+    }
 
     const publishPromises = this.transports.map(async (transport) => {
       if (options.onlySendTo && options.onlySendTo.includes(transport.name)) {
@@ -58,6 +78,8 @@ export class TypedBusClass {
     });
 
     if (event.orphanTransports?.size) this.orphanEventsStore.addEvent(event);
+
+    return hookPromise;
   }
 
   storeInContext(event: Event): void {
@@ -71,12 +93,18 @@ export class TypedBusClass {
   /**
    *  @param listenTo - optional: this will add more transports to be listened to
    * */
-  addConsumer(contract: iots.Any, exec: () => any, listenTo?: string[]) {
-    const transportsList = listenTo && listenTo instanceof Array ? listenTo : ['internal'];
+  addConsumer(
+    contract: iots.Any,
+    exec: (...args: any[]) => any,
+    options: { listenTo?: string[]; hookId?: string } = {},
+  ) {
+    const consumerId = generateConsumerId();
+    const transportsList = options.listenTo?.length ? options.listenTo : ['internal'];
+
     let orphanConsumer = true;
     this.transports.forEach((transport) => {
       if (transportsList.includes(transport.name)) {
-        transport.addConsumer(contract, exec);
+        transport.addConsumer(contract, exec, consumerId, options.hookId);
         orphanConsumer = false;
       }
 
@@ -85,11 +113,26 @@ export class TypedBusClass {
 
     if (orphanConsumer) {
       console.log(
-        `There is no transports '${listenTo?.join(',')}' for this consumer ${contract.name} - ${
-          exec.name
-        }.`,
+        `There is no transports '${options.listenTo?.join(',')}' for this consumer ${
+          contract.name
+        } - ${exec.name}.`,
       );
     }
+
+    return {
+      id: consumerId,
+    };
+  }
+
+  removeConsumer(consumerId: string, fromTransports?: string[]): void {
+    this.transports.forEach((transport) => {
+      if (fromTransports?.includes(transport.name)) {
+        transport.removeConsumer(consumerId);
+      } else if (!fromTransports) {
+        transport.removeConsumer(consumerId);
+      }
+      return;
+    });
   }
 
   addTransport(transport: Transport) {

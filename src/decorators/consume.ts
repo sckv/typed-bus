@@ -27,7 +27,9 @@ export function Consume<I extends iots.Any>(
       ? iots.intersection([contract, options.combine.with], options.combine.name)
       : contract;
 
-    TypedBus.addConsumer(rightContract, propertyDescriptor.value.bind(target), options.listenTo);
+    TypedBus.addConsumer(rightContract, propertyDescriptor.value.bind(target), {
+      listenTo: options.listenTo,
+    });
 
     return propertyDescriptor;
   };
