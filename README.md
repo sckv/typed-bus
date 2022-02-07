@@ -43,8 +43,8 @@ class ConsumerTest {
     console.log('I just consumed money event', data);
   }
 
-  // this method wont be listening to events what came from `kafka` transport
-  @Consume(iots.type({ name: iots.string, age: iots.number }, { dontListenTo: ['kafka'] }))
+  // this method will be listening for the events only from `kafka` transport
+  @Consume(iots.type({ name: iots.string, age: iots.number }, { listenTo: ['kafka'] }))
   async nameAgeConsumerCommand(data: any) {
     console.log('I just consumed person event', data);
   }
