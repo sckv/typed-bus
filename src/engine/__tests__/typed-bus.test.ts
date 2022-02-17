@@ -500,4 +500,32 @@ describe('Typed-Bus suite', () => {
       'Transport NewTransport is not a Transport or is already added.',
     );
   });
+
+  it('get transport names', () => {
+    class NewTransport extends Transport {
+      name = 'new-transport';
+    }
+
+    TypedBus.addTransport(new NewTransport());
+
+    expect(TypedBus.getTransportNames()).toEqual(
+      expect.arrayContaining(['internal', 'new-transport']),
+    );
+  });
+
+  it('test transport imperative removal', () => {
+    class NewTransport extends Transport {
+      name = 'new-transport';
+    }
+
+    TypedBus.addTransport(new NewTransport());
+
+    expect(TypedBus.getTransportNames()).toEqual(
+      expect.arrayContaining(['internal', 'new-transport']),
+    );
+
+    TypedBus.removeTransport('new-transport');
+
+    expect(TypedBus.getTransportNames()).toEqual(['internal']);
+  });
 });
