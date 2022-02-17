@@ -17,6 +17,8 @@ jobs:
           filters: |
             src:
               - 'src/**'
+              - 'package.json'
+              - 'yarn.lock'
 
   testlint:
     name: Test and Lint
