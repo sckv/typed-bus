@@ -63,13 +63,13 @@ export class Event<T = any> {
   }
 
   addOrphanTransport(transport: string) {
-    if (!this.orphanTransports) this.orphanTransports = new Set(transport);
-    else this.orphanTransports.add(transport);
+    if (!this.orphanTransports) this.orphanTransports = new Set();
+    this.orphanTransports.add(transport);
   }
 
   addPublishedTransport(transport: string) {
-    if (!this.publishedTransports) this.publishedTransports = new Set(transport);
-    else this.publishedTransports.add(transport);
+    if (!this.publishedTransports) this.publishedTransports = new Set();
+    this.publishedTransports.add(transport);
   }
 
   static create<T>(payload: T, hook?: boolean) {
