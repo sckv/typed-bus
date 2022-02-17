@@ -16,9 +16,6 @@ jobs:
         uses: actions/setup-node@v1
         with:
           node-version: 16
-      - name: Install dependencies
-        run: npm ci
-      - name: Lint code
-        run: npm run lint
-      - name: Run tests
-        run: npm test
+      - run: yarn install --frozen-lockfile
+      - run: yarn lint
+      - run: yarn test
