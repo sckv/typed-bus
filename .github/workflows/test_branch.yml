@@ -1,4 +1,4 @@
-name: Test branch or PR
+name: Test branch on PR
 on:
   pull_request:
     branches:
