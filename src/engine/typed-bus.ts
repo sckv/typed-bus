@@ -49,10 +49,10 @@ export class TypedBusClass {
         };
 
         consumerId.id = this.addConsumer(options.hook!, resolver, { hookId: event.hookId }).id;
-      });
+      }).finally(() => context.current?.currentEvent?.cleanHookId());
     }
 
-    const publishPromises = this.transports.map(async (transport) => {
+    const publishPromises = this.transports.map((transport) => {
       if (options.onlySendTo && options.onlySendTo.includes(transport.name)) {
         publishedTransports.push(transport.name);
         return transport.publish(event);
@@ -61,8 +61,12 @@ export class TypedBusClass {
         return transport.publish(event);
       }
 
-      throw new Error('There is no transport for this event');
+      return null;
     });
+
+    if (publishPromises.every((val) => val === null)) {
+      throw new Error(`There's no transports to publish to. ${options.onlySendTo?.join(',')}`);
+    }
 
     const results = await Promise.allSettled(publishPromises);
 
@@ -132,19 +136,26 @@ export class TypedBusClass {
     };
   }
 
-  removeConsumer(consumerId: string, fromTransports?: string[]): void {
+  removeConsumer(
+    consumerReference: string | ((...args: any[]) => any),
+    fromTransports?: string[],
+  ): void {
     this.transports.forEach((transport) => {
       if (fromTransports?.includes(transport.name)) {
-        transport.removeConsumer(consumerId);
+        transport.removeConsumer(consumerReference);
       } else if (!fromTransports) {
-        transport.removeConsumer(consumerId);
+        transport.removeConsumer(consumerReference);
       }
       return;
     });
   }
 
   addTransport(transport: Transport) {
-    if (transport instanceof Transport && !this.transports.includes(transport)) {
+    if (
+      transport instanceof Transport &&
+      !this.transports.includes(transport) &&
+      !this.transports.find((t) => t.name === transport.name)
+    ) {
       transport.startAsyncTransport().catch(console.error);
       this.transports.push(transport);
     } else {
@@ -158,6 +169,14 @@ export class TypedBusClass {
     this.transports.forEach((transport) => {
       transport.flushConsumers();
     });
+  }
+
+  flushTransports() {
+    this.transports = [new InternalTransport()];
+  }
+
+  removeTransport(transportName: string) {
+    this.transports = this.transports.filter((t) => t.name !== transportName);
   }
 
   getTransportNames() {

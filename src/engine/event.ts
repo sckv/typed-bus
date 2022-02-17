@@ -18,17 +18,16 @@ export class Event<T = any> {
 
   private constructor(payload: any, hook?: boolean) {
     this.uuid = uuidGenerate();
-    this.hookId = this.setHookId(hook);
+    this.hookId = this.getHook(hook);
     this.timestamp = Date.now();
     this.payload = deepFreeze(payload);
 
     Object.defineProperty(this, 'uuid', { writable: false, configurable: false });
-    Object.defineProperty(this, 'hookId', { writable: false, configurable: false });
     Object.defineProperty(this, 'timestamp', { writable: false, configurable: false });
     Object.defineProperty(this, 'payload', { writable: false, configurable: false });
   }
 
-  setHookId(hook?: boolean) {
+  getHook(hook?: boolean) {
     if (context.current?.currentEvent?.hookId) {
       return context.current?.currentEvent?.hookId;
     }
@@ -36,8 +35,8 @@ export class Event<T = any> {
     return hook ? hookIdGenerate() : undefined;
   }
 
-  getUniqueStamp() {
-    return `${this.timestamp}-${this.uuid}`;
+  getUniqueStamp(transport?: string) {
+    return `${this.timestamp}-${this.uuid}${transport ? `-${transport}` : ''}`;
   }
 
   equals(to: Event) {
@@ -60,6 +59,10 @@ export class Event<T = any> {
 
   toJSON() {
     return this.payload;
+  }
+
+  cleanHookId() {
+    this.hookId = undefined;
   }
 
   addOrphanTransport(transport: string) {

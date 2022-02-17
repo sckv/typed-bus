@@ -23,9 +23,10 @@ const cache = new LRUCache({ maxLoadFactor: 2, size: 10000, maxAge: 10000 });
 
 export abstract class Transport {
   abstract name: string;
+
   consumers: ConsumerMethod[] = [];
-  ready = false;
-  waitForReady = true;
+  ready = true;
+  waitForReady = false;
   lastEvent: Event | undefined;
 
   constructor() {
@@ -41,15 +42,6 @@ export abstract class Transport {
   } | null> {
     if (!this.ready) await this.waitForTransportReadiness();
 
-    if (cache.get(event.getUniqueStamp()) || this.lastEvent?.isAfter(event)) {
-      console.error(
-        `Next event to publish was produced before than the last published event or it's equal. Discarded`,
-      );
-      return null;
-    }
-
-    cache.set(event.getUniqueStamp(), true);
-
     this.lastEvent = event;
 
     if (typeof this._publish === 'function') {
@@ -62,22 +54,26 @@ export abstract class Transport {
     const publishedConsumers: any[] = [];
 
     for (const consumer of this.consumers) {
+      if (cache.get(event.getUniqueStamp(consumer.id))) {
+        // we dont publish this event into this consumer anymore
+        return null;
+      }
+
+      if (this.lastEvent?.isAfter(event)) {
+        console.error(
+          `Next event to publish was produced before than the last published event or it's equal. Discarded`,
+        );
+        return null;
+      }
+
+      cache.set(event.getUniqueStamp(consumer.id), true);
+
       const okOrError = consumer.matchEvent(event);
       if (okOrError === 'ok') {
         publishedConsumers.push(
-          new Promise<void>((res, reject) => {
+          new Promise<void>(async (resolve, reject) => {
             try {
-              const execution = consumer.exec(event.payload);
-              if (execution instanceof Promise) {
-                execution.catch((reason) => {
-                  reason.id = consumer.id;
-                  reason.execName =
-                    consumer.exec.name ||
-                    'Anonymous Function, please do not use arrow functions for the consumers';
-                  reject(reason);
-                });
-              }
-              res();
+              await consumer.exec(event.payload);
             } catch (reason: any) {
               reason.id = consumer.id;
               reason.execName =
@@ -85,7 +81,7 @@ export abstract class Transport {
                 'Anonymous Function, please do not use arrow functions for the consumers';
               reject(reason);
             } finally {
-              res();
+              resolve();
             }
           }),
         );
@@ -153,12 +149,18 @@ export abstract class Transport {
     this.consumers.push({ contract, exec: fn, matchEvent, id: consumerId });
   }
 
-  removeConsumer(consumerId: string) {
-    if (typeof consumerId !== 'string') {
-      throw new Error('Consumer id must be a string to remove');
+  removeConsumer(consumerReference: string | ((...args: any[]) => any)): void {
+    if (typeof consumerReference === 'function') {
+      this.consumers = this.consumers.filter(({ exec }) => exec !== consumerReference);
+      return;
     }
 
-    this.consumers = this.consumers.filter(({ id }) => id !== consumerId);
+    if (typeof consumerReference === 'string') {
+      this.consumers = this.consumers.filter(({ id }) => id !== consumerReference);
+      return;
+    }
+
+    throw new Error('Consumer id must be a string or function reference to remove');
   }
 
   async startAsyncTransport() {
