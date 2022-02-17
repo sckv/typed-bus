@@ -101,6 +101,13 @@ export abstract class Transport {
   }
 
   addConsumer(contract: iots.Any, fn: () => any, consumerId: string, hookId?: string): void {
+    if (this.consumers.findIndex(({ exec }) => exec === fn) !== -1) {
+      console.log(
+        'Cant add a consumer to a transport that already has one with the same reference',
+      );
+      return;
+    }
+
     const contractIntersection = iots.intersection([
       iots.type({ payload: contract }),
       EventBaseType,
