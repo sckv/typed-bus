@@ -13,6 +13,7 @@ const generateConsumerId = hyperid();
 type PublishOptions<T> = {
   onlySendTo?: string[];
   hook?: T extends iots.Any ? T : never;
+  hookTimeout?: T extends iots.Any ? number : never;
 };
 
 export class TypedBusClass {
@@ -36,7 +37,9 @@ export class TypedBusClass {
     if (options.hook) {
       hookPromise = new Promise<any>((resolve, reject) => {
         const consumerId = { id: '' };
-        const timoutRef = setTimeout(reject, 1000);
+        const timoutRef = setTimeout(() => {
+          reject(new Error(`Timeout exceeded for a waiting hook ${options.hook!.name}`));
+        }, options.hookTimeout || 10000);
 
         const resolver = (resultData: unknown) => {
           this.removeConsumer(consumerId.id);
@@ -74,6 +77,11 @@ export class TypedBusClass {
         } else {
           event.addPublishedTransport(result.value.transport);
         }
+        result.value.publishedConsumers?.forEach((value) => {
+          if (value.status == 'rejected') {
+            console.error(`Error in consumer named "${value.reason.execName}"`, value.reason);
+          }
+        });
       }
     });
 
@@ -144,6 +152,12 @@ export class TypedBusClass {
         `Transport ${transport.constructor.name} is not a Transport or is already added.`,
       );
     }
+  }
+
+  flushConsumers() {
+    this.transports.forEach((transport) => {
+      transport.flushConsumers();
+    });
   }
 
   getTransportNames() {

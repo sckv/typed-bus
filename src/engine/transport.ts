@@ -15,6 +15,10 @@ export type ConsumerMethod = {
   id: string;
 };
 
+export type PublishedConsumer = {
+  exec: any;
+};
+
 const cache = new LRUCache({ maxLoadFactor: 2, size: 10000, maxAge: 10000 });
 
 export abstract class Transport {
@@ -60,7 +64,31 @@ export abstract class Transport {
     for (const consumer of this.consumers) {
       const okOrError = consumer.matchEvent(event);
       if (okOrError === 'ok') {
-        publishedConsumers.push(consumer.exec(event.payload));
+        publishedConsumers.push(
+          new Promise<void>((res, reject) => {
+            try {
+              const execution = consumer.exec(event.payload);
+              if (execution instanceof Promise) {
+                execution.catch((reason) => {
+                  reason.id = consumer.id;
+                  reason.execName =
+                    consumer.exec.name ||
+                    'Anonymous Function, please do not use arrow functions for the consumers';
+                  reject(reason);
+                });
+              }
+              res();
+            } catch (reason: any) {
+              reason.id = consumer.id;
+              reason.execName =
+                consumer.exec.name ||
+                'Anonymous Function, please do not use arrow functions for the consumers';
+              reject(reason);
+            } finally {
+              res();
+            }
+          }),
+        );
       } else {
         if (Object.keys(okOrError).length < 2) {
           console.log(okOrError);
@@ -136,6 +164,10 @@ export abstract class Transport {
   async startAsyncTransport() {
     if (!this.ready && typeof this._startAsyncTransport === 'function')
       await this._startAsyncTransport();
+  }
+
+  flushConsumers() {
+    this.consumers = [];
   }
 
   _startAsyncTransport?(): Promise<void>;
