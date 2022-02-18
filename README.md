@@ -11,7 +11,7 @@ Features:
 - Tracks all events records (business operations chain)
 - A shared bus for all the transports
 - You can set what transport the consumer should be listening to (`listenTo`)
-- You can explicitly where the event is going to be published to (`onlySendTo`: [what transport])
+- You can explicitly set where the event is going to be published to (`onlySendTo`: [what transport])
 - Hook into a response event with a determined contract (handy for HTTP requests that await for a response)
 
 Soon:
