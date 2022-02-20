@@ -119,7 +119,7 @@ export abstract class Transport {
       await new Promise<void>((res) => {
         setTimeout(() => {
           if (this.ready) res();
-        }, 1000);
+        }, 50);
       });
     }
   }

@@ -208,12 +208,10 @@ describe('Typed-Bus suite', () => {
 
     new Test();
 
-    TypedBus.publish({ amount: 1, currency: 'EUR' });
+    await TypedBus.publish({ amount: 1, currency: 'EUR' });
 
     expect(spy).toHaveBeenCalled();
     expect(spy).toHaveBeenCalledWith({ amount: 1, currency: 'EUR' });
-
-    await new Promise((res) => setImmediate(res));
 
     expect(console.error).toHaveBeenCalledWith(
       'Error in consumer named "method"',
@@ -238,12 +236,10 @@ describe('Typed-Bus suite', () => {
 
     new Test();
 
-    TypedBus.publish({ amount: 1, currency: 'EUR' });
+    await TypedBus.publish({ amount: 1, currency: 'EUR' });
 
     expect(spy).toHaveBeenCalled();
     expect(spy).toHaveBeenCalledWith({ amount: 1, currency: 'EUR' });
-
-    await new Promise((res) => setImmediate(res));
 
     expect(console.error).toHaveBeenCalledWith(
       'Error in consumer named "asyncMethod"',
@@ -284,8 +280,6 @@ describe('Typed-Bus suite', () => {
     TypedBus.publish({ amount: 1, currency: 'EUR' }, { onlySendTo: ['internal'] });
     TypedBus.publish({ amount: 2, currency: 'USD' }, { onlySendTo: ['new-transport'] });
 
-    await new Promise((res) => setImmediate(res));
-
     expect(spyOld).toHaveBeenCalledTimes(1);
     expect(spyOld).toHaveBeenCalledWith({ amount: 1, currency: 'EUR' });
 
@@ -300,6 +294,7 @@ describe('Typed-Bus suite', () => {
     class NewTransport extends Transport {
       name = 'new-transport';
       waitForReady = true;
+      ready = false;
     }
 
     TypedBus.addTransport(new NewTransport());
@@ -322,10 +317,8 @@ describe('Typed-Bus suite', () => {
 
     new Test();
 
-    TypedBus.publish({ amount: 1, currency: 'EUR' }, { onlySendTo: ['internal'] });
-    TypedBus.publish({ amount: 3, currency: 'JPY' }, { onlySendTo: ['new-transport'] });
-
-    await new Promise((res) => setTimeout(res, 50));
+    await TypedBus.publish({ amount: 1, currency: 'EUR' }, { onlySendTo: ['internal'] });
+    await TypedBus.publish({ amount: 3, currency: 'JPY' }, { onlySendTo: ['new-transport'] });
 
     expect(spyOld).toHaveBeenCalledTimes(1);
     expect(spyOld).toHaveBeenCalledWith({ amount: 1, currency: 'EUR' });
@@ -346,13 +339,11 @@ describe('Typed-Bus suite', () => {
 
     TypedBus.publish({ amount: 1, currency: 'EUR' });
 
-    await new Promise((res) => setTimeout(res));
-
     expect(spy).toHaveBeenCalledTimes(1);
     expect(spy).toHaveBeenCalledWith({ amount: 1, currency: 'EUR' });
   });
 
-  it('adds new consumer with direct API and remove it by id', async () => {
+  it('adds new consumer with direct API and remove it by consumer id', async () => {
     const spy = jest.fn();
     const spySecond = jest.fn();
 
@@ -371,8 +362,6 @@ describe('Typed-Bus suite', () => {
     TypedBus.removeConsumer(consumerReference.id);
 
     TypedBus.publish({ amount: 1, currency: 'EUR' });
-
-    await new Promise((res) => setTimeout(res));
 
     expect(spy).toHaveBeenCalledTimes(1);
     expect(spy).toHaveBeenCalledWith({ amount: 1, currency: 'EUR' });
@@ -399,8 +388,6 @@ describe('Typed-Bus suite', () => {
     TypedBus.removeConsumer(consumer2);
 
     TypedBus.publish({ amount: 1, currency: 'EUR' });
-
-    await new Promise((res) => setTimeout(res));
 
     expect(spy).toHaveBeenCalledTimes(1);
     expect(spy).toHaveBeenCalledWith({ amount: 1, currency: 'EUR' });
@@ -434,8 +421,6 @@ describe('Typed-Bus suite', () => {
 
     TypedBus.publish({ amount: 1, currency: 'EUR' });
 
-    await new Promise((res) => setTimeout(res));
-
     expect(spy).toHaveBeenCalledTimes(1);
     expect(spy).toHaveBeenCalledWith({ amount: 1, currency: 'EUR' });
 
@@ -465,9 +450,7 @@ describe('Typed-Bus suite', () => {
     TypedBus.addConsumer(contract, consumer);
     TypedBus.addConsumer(contract, consumer2, { listenTo: ['internal', 'new-transport'] });
 
-    TypedBus.publish({ amount: 1, currency: 'EUR' });
-
-    await new Promise((res) => setTimeout(res));
+    await TypedBus.publish({ amount: 1, currency: 'EUR' });
 
     expect(spy).toHaveBeenCalledTimes(1);
     expect(spy).toHaveBeenCalledWith({ amount: 1, currency: 'EUR' });
