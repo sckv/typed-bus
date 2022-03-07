@@ -28,7 +28,8 @@
   "scripts": {
     "build": "rm -rf ./lib && tsc -p tsconfig.build.json",
     "build:dev": "rm -rf ./dev-lib && tsc",
-    "test": "jest --runInBand --coverage --passWithNoTests",
+    "test": "jest --runInBand --coverage",
+    "test:watch": "jest --runInBand --watch",
     "lint": "eslint ./src --fix",
     "release": "semantic-release -e ./.releaserc.json"
   },
