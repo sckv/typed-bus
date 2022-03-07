@@ -28,18 +28,15 @@ describe('Event suite', () => {
   it('event isBefore and isAfter works', async () => {
     const event = Event.create({ payload: 'first' });
     await new Promise<void>((res) => {
-      setTimeout(res, 1);
+      setTimeout(res, 5);
     });
 
     const after = Event.create({ payload: 'second' });
     await new Promise<void>((res) => {
-      setTimeout(res, 1);
+      setTimeout(res, 5);
     });
 
     const lastOne = Event.create({ payload: 'second' });
-    await new Promise<void>((res) => {
-      setTimeout(res, 1);
-    });
 
     expect(event.isBefore(after)).toBeTruthy();
     expect(after.isBefore(lastOne)).toBeTruthy();
