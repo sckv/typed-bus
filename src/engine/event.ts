@@ -40,7 +40,8 @@ export class Event<T = any> {
   }
 
   equals(to: Event) {
-    if (this.uuid !== to.uuid && this.timestamp !== to.timestamp) return false;
+    if (this.uuid !== to.uuid || this.timestamp !== to.timestamp) return false;
+    return true;
   }
 
   payloadEquals(to: Event) {
