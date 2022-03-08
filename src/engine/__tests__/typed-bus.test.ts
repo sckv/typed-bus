@@ -153,7 +153,7 @@ describe('Typed-Bus suite', () => {
     expect(secondSpy).toHaveBeenCalled();
     expect(secondSpy).toHaveBeenCalledWith({ name: 'Frank', age: 50 });
 
-    expect(hookedResponse).toEqual({ ageResponse: 50 });
+    expect(hookedResponse.result).toEqual({ ageResponse: 50 });
   });
 
   it('should async throw when is timed out for the hooked response', async () => {

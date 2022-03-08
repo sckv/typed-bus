@@ -3,7 +3,8 @@ import hyperid from 'hyperid';
 
 import { Event } from './event';
 import { Transport } from './transport';
-import { OrphanEventsStore } from './orphan-events-store';
+import { EventsStore } from './events-store';
+import { DumpController } from './dump-controller';
 
 import { InternalTransport } from '../transports/internal-transport';
 import { context } from '../context/context';
@@ -18,7 +19,11 @@ type PublishOptions<T> = {
 
 export class TypedBusClass {
   transports: Transport[] = [];
-  orphanEventsStore = new OrphanEventsStore();
+  orphanEventsStore = new EventsStore();
+  usedEventsStore = new EventsStore();
+
+  orphanEventsDumpController?: DumpController;
+  usedEventsDumpController?: DumpController;
 
   constructor() {
     this.transports.push(new InternalTransport());
@@ -27,7 +32,7 @@ export class TypedBusClass {
   async publish<T, R = T extends iots.Any ? iots.OutputOf<T> : void>(
     eventData: any,
     options: PublishOptions<T> = {},
-  ): Promise<R> {
+  ): Promise<{ result: R; hookId: string }> {
     const publishedTransports: string[] = [];
     const event = Event.create(eventData, typeof options.hook !== undefined);
 
@@ -36,20 +41,22 @@ export class TypedBusClass {
 
     if (options.hook) {
       hookPromise = new Promise<any>((resolve, reject) => {
-        const consumerId = { id: '' };
+        let consumerId = '';
         const timoutRef = setTimeout(() => {
           reject(new Error(`Timeout exceeded for a waiting hook ${options.hook!.name}`));
         }, options.hookTimeout || 10000);
 
         const resolver = (resultData: unknown) => {
-          this.removeConsumer(consumerId.id);
+          this.removeConsumer(consumerId);
           clearTimeout(timoutRef);
 
-          resolve(resultData as any);
+          resolve({ result: resultData, hookId: context.current?.currentEvent?.hookId });
         };
 
-        consumerId.id = this.addConsumer(options.hook!, resolver, { hookId: event.hookId }).id;
-      }).finally(() => context.current?.currentEvent?.cleanHookId());
+        consumerId = this.addConsumer(options.hook!, resolver, { hookId: event.hookId }).id;
+      }).finally(() => {
+        context.current?.currentEvent?.setHookIdStale();
+      });
     }
 
     const publishPromises = this.transports.map((transport) => {
@@ -89,9 +96,39 @@ export class TypedBusClass {
       }
     });
 
-    if (event.orphanTransports?.size) this.orphanEventsStore.addEvent(event);
+    this.decideEventStorage(event);
 
     return hookPromise as any;
+  }
+
+  private decideEventStorage(event: Event): void {
+    // if event didn't find any transport to be published to
+    if (
+      event.orphanTransports?.size === this.transports.length &&
+      this.orphanEventsDumpController
+    ) {
+      this.orphanEventsStore.addEvent(event);
+    }
+
+    // add event to used events store
+    if (this.usedEventsDumpController) {
+      this.usedEventsStore.addEvent(event);
+    }
+  }
+
+  setEventsDumpController(controller: DumpController, mode: 'orphan' | 'used') {
+    if (mode === 'used') {
+      this.usedEventsDumpController = controller;
+      controller.injectStore(this.usedEventsStore);
+    } else if (mode === 'orphan') {
+      this.orphanEventsDumpController = controller;
+      controller.injectStore(this.orphanEventsStore);
+    } else {
+      console.log(`Unknown dump mode ${mode}`);
+      return;
+    }
+
+    controller.launchTimer();
   }
 
   storeInContext(event: Event): void {
@@ -103,6 +140,8 @@ export class TypedBusClass {
   }
 
   /**
+   * Adds contracted consumer to all transports and also returns consumer reference
+   *
    *  @param listenTo - optional: this will add more transports to be listened to
    * */
   addConsumer(
@@ -181,5 +220,10 @@ export class TypedBusClass {
 
   getTransportNames() {
     return this.transports.map((transport) => transport.name);
+  }
+
+  stopDumpers() {
+    this.usedEventsDumpController?.clearTimeout();
+    this.orphanEventsDumpController?.clearTimeout();
   }
 }

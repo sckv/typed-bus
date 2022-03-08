@@ -1,8 +1,24 @@
+/* eslint-disable max-classes-per-file */
 import * as iots from 'io-ts';
 
-import { TypedBus } from '../index';
+import { TypedBus, DumpController, Event } from '../index';
 import { Consume } from '../decorators/consume';
 
+class Dump extends DumpController {
+  constructor() {
+    super(1, 'single');
+  }
+  dump(event: Event<any>): Promise<void> {
+    console.log({ dumpedOrphanEvent: event.toJSON() });
+    return Promise.resolve();
+  }
+
+  dumpMultiple(_events: Event<any>[]): Promise<void> {
+    return Promise.resolve();
+  }
+}
+
+TypedBus.setEventsDumpController(new Dump(), 'orphan');
 class ConsumerTest {
   @Consume(iots.type({ name: iots.string, age: iots.number }))
   async justConsumer(data: any) {
@@ -33,4 +49,5 @@ setTimeout(() => {
 
 setTimeout(() => {
   console.log('Exit');
+  TypedBus.stopDumpers();
 }, 3000);
