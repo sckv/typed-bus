@@ -1,3 +1,5 @@
+Typed Bus / [Exports](docs/modules.md)
+
 # Typed Event Bus
 
 Based on `io-ts` types, this bus provides a handy interface to publish and consume events in the current runtime of the Node.js process.

@@ -11,6 +11,7 @@ const hookIdGenerate = hyperid();
 export class Event<T = any> {
   uuid: string;
   hookId?: string;
+  hookIdStale = false;
   timestamp: number;
   payload: T;
   orphanTransports?: Set<string>;
@@ -25,10 +26,14 @@ export class Event<T = any> {
     Object.defineProperty(this, 'uuid', { writable: false, configurable: false });
     Object.defineProperty(this, 'timestamp', { writable: false, configurable: false });
     Object.defineProperty(this, 'payload', { writable: false, configurable: false });
+    Object.defineProperty(this, 'hookId', { writable: false, configurable: false });
   }
 
   getHook(hook?: boolean) {
-    if (context.current?.currentEvent?.hookId) {
+    if (
+      context.current?.currentEvent?.hookId &&
+      context.current?.currentEvent?.hookIdStale === false
+    ) {
       return context.current?.currentEvent?.hookId;
     }
 
@@ -62,8 +67,8 @@ export class Event<T = any> {
     return this.payload;
   }
 
-  cleanHookId() {
-    this.hookId = undefined;
+  setHookIdStale() {
+    this.hookIdStale = true;
   }
 
   addOrphanTransport(transport: string) {

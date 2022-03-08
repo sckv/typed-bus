@@ -3,7 +3,7 @@ import hyperid from 'hyperid';
 
 import { Event } from './event';
 import { Transport } from './transport';
-import { OrphanEventsStore } from './orphan-events-store';
+import { EventsStore } from './events-store';
 
 import { InternalTransport } from '../transports/internal-transport';
 import { context } from '../context/context';
@@ -16,9 +16,18 @@ type PublishOptions<T> = {
   hookTimeout?: T extends iots.Any ? number : never;
 };
 
+type EventsDumpInterface = {
+  dump(event: Event): Promise<void>;
+  dumpMultiple?(events: Event[]): Promise<void>;
+};
+
 export class TypedBusClass {
   transports: Transport[] = [];
-  orphanEventsStore = new OrphanEventsStore();
+  orphanEventsStore = new EventsStore();
+  usedEventsStore = new EventsStore();
+
+  orphanEventsDumpController?: EventsDumpInterface;
+  usedEventsDumpController?: EventsDumpInterface;
 
   constructor() {
     this.transports.push(new InternalTransport());
@@ -36,21 +45,21 @@ export class TypedBusClass {
 
     if (options.hook) {
       hookPromise = new Promise<any>((resolve, reject) => {
-        const consumerId = { id: '' };
+        let consumerId = '';
         const timoutRef = setTimeout(() => {
           reject(new Error(`Timeout exceeded for a waiting hook ${options.hook!.name}`));
         }, options.hookTimeout || 10000);
 
         const resolver = (resultData: unknown) => {
-          this.removeConsumer(consumerId.id);
+          this.removeConsumer(consumerId);
           clearTimeout(timoutRef);
 
           resolve({ result: resultData, hookId: context.current?.currentEvent?.hookId });
         };
 
-        consumerId.id = this.addConsumer(options.hook!, resolver, { hookId: event.hookId }).id;
+        consumerId = this.addConsumer(options.hook!, resolver, { hookId: event.hookId }).id;
       }).finally(() => {
-        context.current?.currentEvent?.cleanHookId();
+        context.current?.currentEvent?.setHookIdStale();
       });
     }
 
@@ -91,7 +100,18 @@ export class TypedBusClass {
       }
     });
 
-    if (event.orphanTransports?.size) this.orphanEventsStore.addEvent(event);
+    // if event didn't find any transport to be published to
+    if (
+      event.orphanTransports?.size === this.transports.length &&
+      this.orphanEventsDumpController
+    ) {
+      this.orphanEventsStore.addEvent(event);
+    }
+
+    // add event to used events store
+    if (this.usedEventsDumpController) {
+      this.usedEventsStore.addEvent(event);
+    }
 
     return hookPromise as any;
   }
