@@ -1,4 +1,4 @@
-[Typed Bus](../README.md) / Exports
+[Typed Bus](README.md) / Exports
 
 # Typed Bus
 
@@ -6,6 +6,7 @@
 
 ### Classes
 
+- [DumpController](classes/DumpController.md)
 - [Event](classes/Event.md)
 - [Transport](classes/Transport.md)
 
@@ -30,16 +31,16 @@
 
 #### Type declaration
 
-| Name         | Type                          |
-| :----------- | :---------------------------- |
-| `contract`   | `iots.Any`                    |
-| `id`         | `string`                      |
-| `matchEvent` | `MatchEvent`                  |
-| `exec`       | (...`args`: `any`[]) => `any` |
+| Name | Type |
+| :------ | :------ |
+| `contract` | `iots.Any` |
+| `id` | `string` |
+| `matchEvent` | `MatchEvent` |
+| `exec` | (...`args`: `any`[]) => `any` |
 
 #### Defined in
 
-[engine/transport.ts:11](https://github.com/sckv/typed-bus/blob/07037da/src/engine/transport.ts#L11)
+[engine/transport.ts:11](https://github.com/sckv/typed-bus/blob/de15eb5/src/engine/transport.ts#L11)
 
 ## Variables
 
@@ -49,9 +50,9 @@
 
 #### Defined in
 
-[engine/instance.ts:4](https://github.com/sckv/typed-bus/blob/07037da/src/engine/instance.ts#L4)
+[engine/instance.ts:4](https://github.com/sckv/typed-bus/blob/de15eb5/src/engine/instance.ts#L4)
 
----
+___
 
 ### context
 
@@ -59,7 +60,7 @@
 
 #### Defined in
 
-[context/context.ts:15](https://github.com/sckv/typed-bus/blob/07037da/src/context/context.ts#L15)
+[context/context.ts:15](https://github.com/sckv/typed-bus/blob/de15eb5/src/context/context.ts#L15)
 
 ## Functions
 
@@ -72,20 +73,20 @@ Consumes an event that matches the io-ts type.
 
 #### Type parameters
 
-| Name | Type                |
-| :--- | :------------------ |
-| `I`  | extends `Any`<`I`\> |
+| Name | Type |
+| :------ | :------ |
+| `I` | extends `Any`<`I`\> |
 
 #### Parameters
 
-| Name                   | Type       |
-| :--------------------- | :--------- |
-| `contract`             | `I`        |
-| `options`              | `Object`   |
-| `options.combine?`     | `Object`   |
-| `options.combine.name` | `string`   |
-| `options.combine.with` | `Any`      |
-| `options.listenTo?`    | `string`[] |
+| Name | Type |
+| :------ | :------ |
+| `contract` | `I` |
+| `options` | `Object` |
+| `options.combine?` | `Object` |
+| `options.combine.name` | `string` |
+| `options.combine.with` | `Any` |
+| `options.listenTo?` | `string`[] |
 
 #### Returns
 
@@ -95,10 +96,10 @@ Consumes an event that matches the io-ts type.
 
 ##### Parameters
 
-| Name                 | Type                 |
-| :------------------- | :------------------- |
-| `target`             | `any`                |
-| `_propertyName`      | `string`             |
+| Name | Type |
+| :------ | :------ |
+| `target` | `any` |
+| `_propertyName` | `string` |
 | `propertyDescriptor` | `PropertyDescriptor` |
 
 ##### Returns
@@ -107,4 +108,4 @@ Consumes an event that matches the io-ts type.
 
 #### Defined in
 
-[decorators/consume.ts:11](https://github.com/sckv/typed-bus/blob/07037da/src/decorators/consume.ts#L11)
+[decorators/consume.ts:11](https://github.com/sckv/typed-bus/blob/de15eb5/src/decorators/consume.ts#L11)

@@ -124,6 +124,9 @@ export abstract class Transport {
     }
   }
 
+  /**
+   * Adds a consumer to the transport itself - internal method
+   */
   addConsumer(contract: iots.Any, fn: () => any, consumerId: string, hookId?: string): void {
     if (this.consumers.findIndex(({ exec }) => exec === fn) !== -1) {
       console.log(
@@ -149,6 +152,9 @@ export abstract class Transport {
     this.consumers.push({ contract, exec: fn, matchEvent, id: consumerId });
   }
 
+  /**
+   * Removes the consumer from the transport - internal method
+   */
   removeConsumer(consumerReference: string | ((...args: any[]) => any)): void {
     if (typeof consumerReference === 'function') {
       this.consumers = this.consumers.filter(({ exec }) => exec !== consumerReference);
@@ -168,6 +174,9 @@ export abstract class Transport {
       await this._startAsyncTransport();
   }
 
+  /**
+   * Removes all consumers from this transport instance - internal method
+   */
   flushConsumers() {
     this.consumers = [];
   }

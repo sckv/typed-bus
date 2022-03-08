@@ -15,11 +15,10 @@ export class EventsStore {
     events.forEach((event) => this.addEvent(event));
   }
 
-  getEvents(): Event[] {
-    return Array.from(this.events.values());
-  }
-
-  cleanEvents(): void {
+  dumpEvents(): Event[] {
+    const events = Array.from(this.events.values());
     this.events = new Map<string, Event>();
+
+    return events;
   }
 }

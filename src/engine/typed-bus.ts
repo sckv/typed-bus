@@ -4,6 +4,7 @@ import hyperid from 'hyperid';
 import { Event } from './event';
 import { Transport } from './transport';
 import { EventsStore } from './events-store';
+import { DumpController } from './dump-controller';
 
 import { InternalTransport } from '../transports/internal-transport';
 import { context } from '../context/context';
@@ -16,18 +17,13 @@ type PublishOptions<T> = {
   hookTimeout?: T extends iots.Any ? number : never;
 };
 
-type EventsDumpInterface = {
-  dump(event: Event): Promise<void>;
-  dumpMultiple?(events: Event[]): Promise<void>;
-};
-
 export class TypedBusClass {
   transports: Transport[] = [];
   orphanEventsStore = new EventsStore();
   usedEventsStore = new EventsStore();
 
-  orphanEventsDumpController?: EventsDumpInterface;
-  usedEventsDumpController?: EventsDumpInterface;
+  orphanEventsDumpController?: DumpController;
+  usedEventsDumpController?: DumpController;
 
   constructor() {
     this.transports.push(new InternalTransport());
@@ -100,6 +96,12 @@ export class TypedBusClass {
       }
     });
 
+    this.decideEventStorage(event);
+
+    return hookPromise as any;
+  }
+
+  private decideEventStorage(event: Event): void {
     // if event didn't find any transport to be published to
     if (
       event.orphanTransports?.size === this.transports.length &&
@@ -112,8 +114,21 @@ export class TypedBusClass {
     if (this.usedEventsDumpController) {
       this.usedEventsStore.addEvent(event);
     }
+  }
 
-    return hookPromise as any;
+  setEventsDumpController(controller: DumpController, mode: 'orphan' | 'used') {
+    if (mode === 'used') {
+      this.usedEventsDumpController = controller;
+      controller.injectStore(this.usedEventsStore);
+    } else if (mode === 'orphan') {
+      this.orphanEventsDumpController = controller;
+      controller.injectStore(this.orphanEventsStore);
+    } else {
+      console.log(`Unknown dump mode ${mode}`);
+      return;
+    }
+
+    controller.launchTimer();
   }
 
   storeInContext(event: Event): void {
@@ -125,6 +140,8 @@ export class TypedBusClass {
   }
 
   /**
+   * Adds contracted consumer to all transports and also returns consumer reference
+   *
    *  @param listenTo - optional: this will add more transports to be listened to
    * */
   addConsumer(
@@ -203,5 +220,10 @@ export class TypedBusClass {
 
   getTransportNames() {
     return this.transports.map((transport) => transport.name);
+  }
+
+  stopDumpers() {
+    this.usedEventsDumpController?.clearTimeout();
+    this.orphanEventsDumpController?.clearTimeout();
   }
 }

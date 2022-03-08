@@ -15,11 +15,11 @@ Features:
 - You can set what transport the consumer should be listening to (`listenTo`)
 - You can explicitly set where the event is going to be published to (`onlySendTo`: [what transport])
 - Hook into a response event with a determined contract (handy for HTTP requests that await for a response)
+- You can provide a source connector where all the orphan events can be dumped (e.g. NoSQL storage as Mongo)
+- You can provide a source connector where all the consumed events can be dumped
 
 Soon:
 
-- You can provide a source connector where all the orphan events can be dumped (e.g. NoSQL storage as Mongo)
-- You can provide a source connector where all the consumed events can be dumped
 - Handy Context API to tie the event with the business operation & aggregate mutation
 - Rebuild the graph for any event from its unique ID and visualize it (and the data changes)
 
@@ -205,4 +205,30 @@ export class MyTransport extends Transport {
     ... custom control rules, logging, etc ...
   }
 }
+```
+
+## Define an event DumpController
+
+```ts
+import { TypedBus, DumpController } from 'typed-bus';
+import * as iots from 'io-ts';
+
+class CustomDumper extends DumpController {
+  constructor() {
+    // select the mode to initialize the parent controller class
+    super(1, 'single');
+  }
+
+  dump(event: { [k: string]: any }): Promise<void> {
+    console.log({ dumpedOrphanEvent: event });
+    return Promise.resolve();
+  }
+}
+
+TypedBus.setEventsDumpController(new CustomDumper(), 'orphan');
+
+// do not forget to close all the handlers if you need to stop the dumper
+// during the runtime
+// rarely used
+TypedBus.stopDumpers();
 ```

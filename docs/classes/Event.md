@@ -16,6 +16,7 @@
 
 ### Properties
 
+- [executionId](Event.md#executionid)
 - [hookId](Event.md#hookid)
 - [hookIdStale](Event.md#hookidstale)
 - [orphanTransports](Event.md#orphantransports)
@@ -34,7 +35,9 @@
 - [isAfter](Event.md#isafter)
 - [isBefore](Event.md#isbefore)
 - [payloadEquals](Event.md#payloadequals)
+- [setExecutionId](Event.md#setexecutionid)
 - [setHookIdStale](Event.md#sethookidstale)
+- [toFullEvent](Event.md#tofullevent)
 - [toJSON](Event.md#tojson)
 - [create](Event.md#create)
 
@@ -59,9 +62,19 @@
 
 #### Defined in
 
-[engine/event.ts:20](https://github.com/sckv/typed-bus/blob/07037da/src/engine/event.ts#L20)
+[engine/event.ts:28](https://github.com/sckv/typed-bus/blob/de15eb5/src/engine/event.ts#L28)
 
 ## Properties
+
+### executionId
+
+• `Optional` **executionId**: `string`
+
+#### Defined in
+
+[engine/event.ts:22](https://github.com/sckv/typed-bus/blob/de15eb5/src/engine/event.ts#L22)
+
+___
 
 ### hookId
 
@@ -69,7 +82,7 @@
 
 #### Defined in
 
-[engine/event.ts:13](https://github.com/sckv/typed-bus/blob/07037da/src/engine/event.ts#L13)
+[engine/event.ts:19](https://github.com/sckv/typed-bus/blob/de15eb5/src/engine/event.ts#L19)
 
 ___
 
@@ -79,17 +92,17 @@ ___
 
 #### Defined in
 
-[engine/event.ts:14](https://github.com/sckv/typed-bus/blob/07037da/src/engine/event.ts#L14)
+[engine/event.ts:20](https://github.com/sckv/typed-bus/blob/de15eb5/src/engine/event.ts#L20)
 
 ___
 
 ### orphanTransports
 
-• `Optional` **orphanTransports**: `Set`<`string`\>
+• `Optional` **orphanTransports**: `CustomSet`<`string`\>
 
 #### Defined in
 
-[engine/event.ts:17](https://github.com/sckv/typed-bus/blob/07037da/src/engine/event.ts#L17)
+[engine/event.ts:25](https://github.com/sckv/typed-bus/blob/de15eb5/src/engine/event.ts#L25)
 
 ___
 
@@ -99,17 +112,17 @@ ___
 
 #### Defined in
 
-[engine/event.ts:16](https://github.com/sckv/typed-bus/blob/07037da/src/engine/event.ts#L16)
+[engine/event.ts:24](https://github.com/sckv/typed-bus/blob/de15eb5/src/engine/event.ts#L24)
 
 ___
 
 ### publishedTransports
 
-• `Optional` **publishedTransports**: `Set`<`string`\>
+• `Optional` **publishedTransports**: `CustomSet`<`string`\>
 
 #### Defined in
 
-[engine/event.ts:18](https://github.com/sckv/typed-bus/blob/07037da/src/engine/event.ts#L18)
+[engine/event.ts:26](https://github.com/sckv/typed-bus/blob/de15eb5/src/engine/event.ts#L26)
 
 ___
 
@@ -119,7 +132,7 @@ ___
 
 #### Defined in
 
-[engine/event.ts:15](https://github.com/sckv/typed-bus/blob/07037da/src/engine/event.ts#L15)
+[engine/event.ts:23](https://github.com/sckv/typed-bus/blob/de15eb5/src/engine/event.ts#L23)
 
 ___
 
@@ -129,7 +142,7 @@ ___
 
 #### Defined in
 
-[engine/event.ts:12](https://github.com/sckv/typed-bus/blob/07037da/src/engine/event.ts#L12)
+[engine/event.ts:18](https://github.com/sckv/typed-bus/blob/de15eb5/src/engine/event.ts#L18)
 
 ## Methods
 
@@ -149,7 +162,7 @@ ___
 
 #### Defined in
 
-[engine/event.ts:74](https://github.com/sckv/typed-bus/blob/07037da/src/engine/event.ts#L74)
+[engine/event.ts:90](https://github.com/sckv/typed-bus/blob/de15eb5/src/engine/event.ts#L90)
 
 ___
 
@@ -169,7 +182,7 @@ ___
 
 #### Defined in
 
-[engine/event.ts:79](https://github.com/sckv/typed-bus/blob/07037da/src/engine/event.ts#L79)
+[engine/event.ts:95](https://github.com/sckv/typed-bus/blob/de15eb5/src/engine/event.ts#L95)
 
 ___
 
@@ -189,7 +202,7 @@ ___
 
 #### Defined in
 
-[engine/event.ts:47](https://github.com/sckv/typed-bus/blob/07037da/src/engine/event.ts#L47)
+[engine/event.ts:59](https://github.com/sckv/typed-bus/blob/de15eb5/src/engine/event.ts#L59)
 
 ___
 
@@ -209,7 +222,7 @@ ___
 
 #### Defined in
 
-[engine/event.ts:32](https://github.com/sckv/typed-bus/blob/07037da/src/engine/event.ts#L32)
+[engine/event.ts:44](https://github.com/sckv/typed-bus/blob/de15eb5/src/engine/event.ts#L44)
 
 ___
 
@@ -229,7 +242,7 @@ ___
 
 #### Defined in
 
-[engine/event.ts:43](https://github.com/sckv/typed-bus/blob/07037da/src/engine/event.ts#L43)
+[engine/event.ts:55](https://github.com/sckv/typed-bus/blob/de15eb5/src/engine/event.ts#L55)
 
 ___
 
@@ -249,7 +262,7 @@ ___
 
 #### Defined in
 
-[engine/event.ts:62](https://github.com/sckv/typed-bus/blob/07037da/src/engine/event.ts#L62)
+[engine/event.ts:74](https://github.com/sckv/typed-bus/blob/de15eb5/src/engine/event.ts#L74)
 
 ___
 
@@ -269,7 +282,7 @@ ___
 
 #### Defined in
 
-[engine/event.ts:58](https://github.com/sckv/typed-bus/blob/07037da/src/engine/event.ts#L58)
+[engine/event.ts:70](https://github.com/sckv/typed-bus/blob/de15eb5/src/engine/event.ts#L70)
 
 ___
 
@@ -289,7 +302,27 @@ ___
 
 #### Defined in
 
-[engine/event.ts:52](https://github.com/sckv/typed-bus/blob/07037da/src/engine/event.ts#L52)
+[engine/event.ts:64](https://github.com/sckv/typed-bus/blob/de15eb5/src/engine/event.ts#L64)
+
+___
+
+### setExecutionId
+
+▸ **setExecutionId**(`executionId`): `void`
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `executionId` | `string` |
+
+#### Returns
+
+`void`
+
+#### Defined in
+
+[engine/event.ts:40](https://github.com/sckv/typed-bus/blob/de15eb5/src/engine/event.ts#L40)
 
 ___
 
@@ -303,7 +336,21 @@ ___
 
 #### Defined in
 
-[engine/event.ts:70](https://github.com/sckv/typed-bus/blob/07037da/src/engine/event.ts#L70)
+[engine/event.ts:86](https://github.com/sckv/typed-bus/blob/de15eb5/src/engine/event.ts#L86)
+
+___
+
+### toFullEvent
+
+▸ **toFullEvent**(): [`Event`](Event.md)<`T`\>
+
+#### Returns
+
+[`Event`](Event.md)<`T`\>
+
+#### Defined in
+
+[engine/event.ts:82](https://github.com/sckv/typed-bus/blob/de15eb5/src/engine/event.ts#L82)
 
 ___
 
@@ -317,7 +364,7 @@ ___
 
 #### Defined in
 
-[engine/event.ts:66](https://github.com/sckv/typed-bus/blob/07037da/src/engine/event.ts#L66)
+[engine/event.ts:78](https://github.com/sckv/typed-bus/blob/de15eb5/src/engine/event.ts#L78)
 
 ___
 
@@ -344,4 +391,4 @@ ___
 
 #### Defined in
 
-[engine/event.ts:84](https://github.com/sckv/typed-bus/blob/07037da/src/engine/event.ts#L84)
+[engine/event.ts:100](https://github.com/sckv/typed-bus/blob/de15eb5/src/engine/event.ts#L100)

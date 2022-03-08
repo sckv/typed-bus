@@ -1,3 +1,4 @@
+/* eslint-disable max-classes-per-file */
 import hyperid from 'hyperid';
 import { cloneDeep, isEqual } from 'lodash';
 
@@ -8,14 +9,21 @@ import { context } from '../context/context';
 const uuidGenerate = hyperid();
 const hookIdGenerate = hyperid();
 
+class CustomSet<T> extends Set<T> {
+  toJSON() {
+    return Array.from(this.values());
+  }
+}
 export class Event<T = any> {
   uuid: string;
   hookId?: string;
   hookIdStale = false;
+
+  executionId?: string;
   timestamp: number;
   payload: T;
-  orphanTransports?: Set<string>;
-  publishedTransports?: Set<string>;
+  orphanTransports?: CustomSet<string>;
+  publishedTransports?: CustomSet<string>;
 
   private constructor(payload: any, hook?: boolean) {
     this.uuid = uuidGenerate();
@@ -27,6 +35,10 @@ export class Event<T = any> {
     Object.defineProperty(this, 'timestamp', { writable: false, configurable: false });
     Object.defineProperty(this, 'payload', { writable: false, configurable: false });
     Object.defineProperty(this, 'hookId', { writable: false, configurable: false });
+  }
+
+  setExecutionId(executionId: string) {
+    this.executionId = executionId;
   }
 
   getHook(hook?: boolean) {
@@ -67,17 +79,21 @@ export class Event<T = any> {
     return this.payload;
   }
 
+  toFullEvent() {
+    return { ...this };
+  }
+
   setHookIdStale() {
     this.hookIdStale = true;
   }
 
   addOrphanTransport(transport: string) {
-    if (!this.orphanTransports) this.orphanTransports = new Set();
+    if (!this.orphanTransports) this.orphanTransports = new CustomSet();
     this.orphanTransports.add(transport);
   }
 
   addPublishedTransport(transport: string) {
-    if (!this.publishedTransports) this.publishedTransports = new Set();
+    if (!this.publishedTransports) this.publishedTransports = new CustomSet();
     this.publishedTransports.add(transport);
   }
 

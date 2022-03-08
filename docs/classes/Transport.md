@@ -35,7 +35,7 @@
 
 #### Defined in
 
-[engine/transport.ts:32](https://github.com/sckv/typed-bus/blob/07037da/src/engine/transport.ts#L32)
+[engine/transport.ts:32](https://github.com/sckv/typed-bus/blob/de15eb5/src/engine/transport.ts#L32)
 
 ## Properties
 
@@ -45,7 +45,7 @@
 
 #### Defined in
 
-[engine/transport.ts:27](https://github.com/sckv/typed-bus/blob/07037da/src/engine/transport.ts#L27)
+[engine/transport.ts:27](https://github.com/sckv/typed-bus/blob/de15eb5/src/engine/transport.ts#L27)
 
 ___
 
@@ -55,7 +55,7 @@ ___
 
 #### Defined in
 
-[engine/transport.ts:30](https://github.com/sckv/typed-bus/blob/07037da/src/engine/transport.ts#L30)
+[engine/transport.ts:30](https://github.com/sckv/typed-bus/blob/de15eb5/src/engine/transport.ts#L30)
 
 ___
 
@@ -65,7 +65,7 @@ ___
 
 #### Defined in
 
-[engine/transport.ts:25](https://github.com/sckv/typed-bus/blob/07037da/src/engine/transport.ts#L25)
+[engine/transport.ts:25](https://github.com/sckv/typed-bus/blob/de15eb5/src/engine/transport.ts#L25)
 
 ___
 
@@ -75,7 +75,7 @@ ___
 
 #### Defined in
 
-[engine/transport.ts:28](https://github.com/sckv/typed-bus/blob/07037da/src/engine/transport.ts#L28)
+[engine/transport.ts:28](https://github.com/sckv/typed-bus/blob/de15eb5/src/engine/transport.ts#L28)
 
 ___
 
@@ -85,7 +85,7 @@ ___
 
 #### Defined in
 
-[engine/transport.ts:29](https://github.com/sckv/typed-bus/blob/07037da/src/engine/transport.ts#L29)
+[engine/transport.ts:29](https://github.com/sckv/typed-bus/blob/de15eb5/src/engine/transport.ts#L29)
 
 ## Methods
 
@@ -105,7 +105,7 @@ ___
 
 #### Defined in
 
-[engine/transport.ts:176](https://github.com/sckv/typed-bus/blob/07037da/src/engine/transport.ts#L176)
+[engine/transport.ts:185](https://github.com/sckv/typed-bus/blob/de15eb5/src/engine/transport.ts#L185)
 
 ___
 
@@ -119,13 +119,15 @@ ___
 
 #### Defined in
 
-[engine/transport.ts:175](https://github.com/sckv/typed-bus/blob/07037da/src/engine/transport.ts#L175)
+[engine/transport.ts:184](https://github.com/sckv/typed-bus/blob/de15eb5/src/engine/transport.ts#L184)
 
 ___
 
 ### addConsumer
 
 ▸ **addConsumer**(`contract`, `fn`, `consumerId`, `hookId?`): `void`
+
+Adds a consumer to the transport itself - internal method
 
 #### Parameters
 
@@ -142,7 +144,7 @@ ___
 
 #### Defined in
 
-[engine/transport.ts:127](https://github.com/sckv/typed-bus/blob/07037da/src/engine/transport.ts#L127)
+[engine/transport.ts:130](https://github.com/sckv/typed-bus/blob/de15eb5/src/engine/transport.ts#L130)
 
 ___
 
@@ -150,13 +152,15 @@ ___
 
 ▸ **flushConsumers**(): `void`
 
+Removes all consumers from this transport instance - internal method
+
 #### Returns
 
 `void`
 
 #### Defined in
 
-[engine/transport.ts:171](https://github.com/sckv/typed-bus/blob/07037da/src/engine/transport.ts#L171)
+[engine/transport.ts:180](https://github.com/sckv/typed-bus/blob/de15eb5/src/engine/transport.ts#L180)
 
 ___
 
@@ -176,13 +180,15 @@ ___
 
 #### Defined in
 
-[engine/transport.ts:38](https://github.com/sckv/typed-bus/blob/07037da/src/engine/transport.ts#L38)
+[engine/transport.ts:38](https://github.com/sckv/typed-bus/blob/de15eb5/src/engine/transport.ts#L38)
 
 ___
 
 ### removeConsumer
 
 ▸ **removeConsumer**(`consumerReference`): `void`
+
+Removes the consumer from the transport - internal method
 
 #### Parameters
 
@@ -196,7 +202,7 @@ ___
 
 #### Defined in
 
-[engine/transport.ts:152](https://github.com/sckv/typed-bus/blob/07037da/src/engine/transport.ts#L152)
+[engine/transport.ts:158](https://github.com/sckv/typed-bus/blob/de15eb5/src/engine/transport.ts#L158)
 
 ___
 
@@ -210,7 +216,7 @@ ___
 
 #### Defined in
 
-[engine/transport.ts:166](https://github.com/sckv/typed-bus/blob/07037da/src/engine/transport.ts#L166)
+[engine/transport.ts:172](https://github.com/sckv/typed-bus/blob/de15eb5/src/engine/transport.ts#L172)
 
 ___
 
@@ -224,4 +230,4 @@ ___
 
 #### Defined in
 
-[engine/transport.ts:105](https://github.com/sckv/typed-bus/blob/07037da/src/engine/transport.ts#L105)
+[engine/transport.ts:105](https://github.com/sckv/typed-bus/blob/de15eb5/src/engine/transport.ts#L105)
