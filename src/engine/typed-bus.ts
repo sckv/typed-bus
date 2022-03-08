@@ -27,7 +27,7 @@ export class TypedBusClass {
   async publish<T, R = T extends iots.Any ? iots.OutputOf<T> : void>(
     eventData: any,
     options: PublishOptions<T> = {},
-  ): Promise<R> {
+  ): Promise<{ result: R; hookId: string }> {
     const publishedTransports: string[] = [];
     const event = Event.create(eventData, typeof options.hook !== undefined);
 
@@ -45,11 +45,13 @@ export class TypedBusClass {
           this.removeConsumer(consumerId.id);
           clearTimeout(timoutRef);
 
-          resolve(resultData as any);
+          resolve({ result: resultData, hookId: context.current?.currentEvent?.hookId });
         };
 
         consumerId.id = this.addConsumer(options.hook!, resolver, { hookId: event.hookId }).id;
-      }).finally(() => context.current?.currentEvent?.cleanHookId());
+      }).finally(() => {
+        context.current?.currentEvent?.cleanHookId();
+      });
     }
 
     const publishPromises = this.transports.map((transport) => {
