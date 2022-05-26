@@ -37,23 +37,18 @@
     "prettify": "prettier --write \"./src/**/*.{ts,tsx}\""
   },
   "devDependencies": {
-    "@semantic-release/git": "^10.0.1",
-    "@semantic-release/github": "^8.0.2",
     "@types/lodash": "^4.14.178",
     "axios": "^0.26.0",
     "barehttp": "^0.4.2",
-    "code-concierge": "^1.0.3",
-    "semantic-release": "^19.0.2",
+    "code-concierge": "^1.0.4",
     "typedoc": "^0.22.13",
-    "typedoc-plugin-markdown": "^3.11.14",
-    "typescript": "^4.5.5"
+    "typedoc-plugin-markdown": "^3.11.14"
   },
   "dependencies": {
     "fp-ts": "^2.11.8",
     "hyperid": "^3.0.0",
     "io-ts": "^2.2.16",
     "lodash": "^4.17.21",
-    "lru-native2": "^1.2.5",
-    "reflect-metadata": "^0.1.13"
+    "lru-native2": "^1.2.5"
   }
 }

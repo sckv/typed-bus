@@ -1,4 +1,7 @@
 {
   "extends": "code-concierge/src/settings/tsconfig.json",
-  "include": ["src"],
+  "compilerOptions": {
+    "typeRoots": ["./node_modules/@types", "@types/**/*"]
+  },
+  "include": ["src"]
 }
