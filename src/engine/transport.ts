@@ -117,8 +117,11 @@ export abstract class Transport {
     if (!this.ready && this.waitForReady) {
       console.log('Wait for transport to be ready before publishing...');
       await new Promise<void>((res) => {
-        setTimeout(() => {
-          if (this.ready) res();
+        const ref = setInterval(() => {
+          if (this.ready) {
+            clearInterval(ref);
+            res();
+          }
         }, 50);
       });
     }

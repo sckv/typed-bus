@@ -3,50 +3,50 @@ import { Execution } from './execution';
 import asyncHooks from 'async_hooks';
 
 type Context = {
-  traces: { [k: string]: Execution };
+  traces: Map<number, Execution>;
   current?: Execution;
   newContext: () => Execution;
   enable: () => asyncHooks.AsyncHook;
   enabled: boolean;
 };
 
-const prevStates = {};
+const prevStates = new Map();
 
 const context: Context = {
-  traces: {},
+  traces: new Map<string, Execution>(),
   enabled: false,
   newContext: () => {
     context.current = new Execution();
-    context.traces[asyncHooks.executionAsyncId()] = context.current;
+    context.traces.set(asyncHooks.executionAsyncId(), context.current);
     return context.current;
   },
 } as any;
 
 function init(asyncId: number, _type: string, triggerAsyncId: number) {
-  if (context.traces[triggerAsyncId]) {
-    context.traces[asyncId] = context.traces[triggerAsyncId];
+  if (context.traces.has(triggerAsyncId)) {
+    context.traces.set(asyncId, context.traces.get(triggerAsyncId)!);
   }
 }
 
 function before(asyncId: number) {
-  if (!context.traces[asyncId]) {
+  if (!context.traces.has(asyncId)) {
     return;
   }
-  prevStates[asyncId] = context.current;
-  context.current = context.traces[asyncId];
+  prevStates.set(asyncId, context.current);
+  context.current = context.traces.get(asyncId);
 }
 
 function after(asyncId: number) {
-  if (!context.traces[asyncId]) {
+  if (!context.traces.has(asyncId)) {
     return;
   }
-  context.current = prevStates[asyncId];
+  context.current = prevStates.get(asyncId);
 }
 
 function destroy(asyncId: number) {
-  if (context.traces[asyncId]) {
-    delete context.traces[asyncId];
-    delete prevStates[asyncId];
+  if (context.traces.has(asyncId)) {
+    context.traces.delete(asyncId);
+    prevStates.delete(asyncId);
   }
 }
 

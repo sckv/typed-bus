@@ -13,7 +13,7 @@ class Dump extends DumpController {
     return Promise.resolve();
   }
 
-  dumpMultiple(_events: Event<any>[]): Promise<void> {
+  dumpMultiple(): Promise<void> {
     return Promise.resolve();
   }
 }
