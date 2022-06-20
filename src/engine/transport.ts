@@ -3,14 +3,16 @@ import * as iots from 'io-ts';
 import { isLeft } from 'fp-ts/lib/Either';
 
 import { Event } from './event';
+import { context } from './instance';
 
 import { EventBaseType } from '../validation/event-base-type';
 import { reporter } from '../validation/reporter';
+import { Execution } from '../context/execution';
 
 export type MatchEvent = (event: Event) => 'ok' | { [k: string]: string };
 export type ConsumerMethod = {
   contract: iots.Any;
-  exec: (...args: any[]) => any;
+  executor: (...args: any[]) => any;
   matchEvent: MatchEvent;
   id: string;
 };
@@ -27,7 +29,7 @@ export abstract class Transport {
   consumers: ConsumerMethod[] = [];
   ready = true;
   waitForReady = false;
-  lastEvent: Event | undefined;
+  lastEventsStore: WeakMap<Execution, Event | undefined> = new WeakMap();
 
   constructor() {
     this.startAsyncTransport()
@@ -41,8 +43,6 @@ export abstract class Transport {
     publishedConsumers: PromiseSettledResult<void>[];
   } | null> {
     if (!this.ready) await this.waitForTransportReadiness();
-
-    this.lastEvent = event;
 
     if (typeof this._publish === 'function') {
       return {
@@ -59,9 +59,9 @@ export abstract class Transport {
         return null;
       }
 
-      if (this.lastEvent?.isAfter(event)) {
+      if (context.current && this.lastEventsStore.get(context.current)?.isAfter(event)) {
         console.error(
-          `Next event to publish was produced before than the last published event or it's equal. Discarded`,
+          `Next event to publish was produced before the last published event or it's equal. Discarded`,
         );
         return null;
       }
@@ -73,11 +73,11 @@ export abstract class Transport {
         publishedConsumers.push(
           new Promise<void>(async (resolve, reject) => {
             try {
-              await consumer.exec(event.payload);
+              await consumer.executor(event.payload);
             } catch (reason: any) {
               reason.id = consumer.id;
               reason.execName =
-                consumer.exec.name ||
+                consumer.executor.name ||
                 'Anonymous Function, please do not use arrow functions for the consumers';
               reject(reason);
             } finally {
@@ -89,11 +89,14 @@ export abstract class Transport {
         if (Object.keys(okOrError).length < 2) {
           console.log(okOrError);
           console.log(
-            `Event just have 1 error, maybe there's a malformed object for a consumer ${consumer.exec.name} with type ${consumer.contract.name}`,
+            `Event just have 1 error, maybe there's a malformed object for a consumer ${consumer.executor.name} with type ${consumer.contract.name}`,
           );
         }
       }
     }
+
+    // we add a latest event into this consumer
+    if (context.current) this.lastEventsStore.set(context.current, event);
 
     return {
       transport: this.name,
@@ -131,7 +134,7 @@ export abstract class Transport {
    * Adds a consumer to the transport itself - internal method
    */
   addConsumer(contract: iots.Any, fn: () => any, consumerId: string, hookId?: string): void {
-    if (this.consumers.findIndex(({ exec }) => exec === fn) !== -1) {
+    if (this.consumers.findIndex(({ executor }) => executor === fn) !== -1) {
       console.log(
         'Cant add a consumer to a transport that already has one with the same reference',
       );
@@ -141,7 +144,7 @@ export abstract class Transport {
     const contractIntersection = iots.intersection([
       iots.type({ payload: contract }),
       EventBaseType,
-      iots.type({ hookId: hookId ? iots.literal(hookId) : iots.unknown }),
+      iots.type({ hookId: hookId ? iots.literal(hookId) : iots.undefined }),
     ]);
 
     const matchEvent: MatchEvent = (event: Event) => {
@@ -152,7 +155,7 @@ export abstract class Transport {
       return 'ok';
     };
 
-    this.consumers.push({ contract, exec: fn, matchEvent, id: consumerId });
+    this.consumers.push({ contract, executor: fn, matchEvent, id: consumerId });
   }
 
   /**
@@ -160,7 +163,7 @@ export abstract class Transport {
    */
   removeConsumer(consumerReference: string | ((...args: any[]) => any)): void {
     if (typeof consumerReference === 'function') {
-      this.consumers = this.consumers.filter(({ exec }) => exec !== consumerReference);
+      this.consumers = this.consumers.filter(({ executor: exec }) => exec !== consumerReference);
       return;
     }
 

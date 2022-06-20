@@ -42,18 +42,18 @@ export class TypedBusClass {
     if (options.hook) {
       hookPromise = new Promise<any>((resolve, reject) => {
         let consumerId = '';
-        const timoutRef = setTimeout(() => {
+        const timeoutRef = setTimeout(() => {
           reject(new Error(`Timeout exceeded for a waiting hook ${options.hook!.name}`));
         }, options.hookTimeout || 10000);
 
-        const resolver = (resultData: unknown) => {
+        const executor = (resultData: unknown) => {
           this.removeConsumer(consumerId);
-          clearTimeout(timoutRef);
+          clearTimeout(timeoutRef);
 
           resolve({ result: resultData, hookId: context.current?.currentEvent?.hookId });
         };
 
-        consumerId = this.addConsumer(options.hook!, resolver, { hookId: event.hookId }).id;
+        consumerId = this.addConsumer(options.hook!, executor, { hookId: event.hookId }).id;
       }).finally(() => {
         context.current?.currentEvent?.setHookIdStale();
       });
@@ -146,7 +146,7 @@ export class TypedBusClass {
    * */
   addConsumer(
     contract: iots.Any,
-    exec: (...args: any[]) => any,
+    executor: (...args: any[]) => any,
     options: { listenTo?: string[]; hookId?: string } = {},
   ) {
     const consumerId = generateConsumerId();
@@ -155,7 +155,7 @@ export class TypedBusClass {
     let orphanConsumer = true;
     this.transports.forEach((transport) => {
       if (transportsList.includes(transport.name)) {
-        transport.addConsumer(contract, exec, consumerId, options.hookId);
+        transport.addConsumer(contract, executor, consumerId, options.hookId);
         orphanConsumer = false;
       }
 
@@ -166,7 +166,7 @@ export class TypedBusClass {
       console.log(
         `There is no transports '${options.listenTo?.join(',')}' for this consumer ${
           contract.name
-        } - ${exec.name}.`,
+        } - ${executor.name}.`,
       );
     }
 

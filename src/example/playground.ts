@@ -26,6 +26,10 @@ class ConsumerTest {
 
     const hookResponse = await TypedBus.publish(
       { amount: 1234, currency: 'EUR' },
+
+      // this will hook to a value which is expressed here
+      // as we have completely independent execution flows
+      // we need to define a proper contract to be called as a consumer internally
       { hook: iots.type({ hookProp: iots.literal('value'), hookValue: iots.number }) },
     );
 
