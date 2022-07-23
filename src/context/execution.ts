@@ -14,6 +14,10 @@ export class Execution {
 
   addEvent(event: Event) {
     event.setExecutionId(this.executionId);
+
+    // this should make the events inheritable
+    event.setParentUUID(this.currentEvent?.uuid);
+
     this.currentEvent = event;
     this.events.push(event);
   }

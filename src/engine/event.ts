@@ -21,6 +21,8 @@ export class Event<T = any> {
 
   executionId?: string;
   timestamp: number;
+  parentUUID?: string;
+
   payload: T;
   orphanTransports?: CustomSet<string>;
   publishedTransports?: CustomSet<string>;
@@ -39,6 +41,10 @@ export class Event<T = any> {
 
   setExecutionId(executionId: string) {
     this.executionId = executionId;
+  }
+
+  setParentUUID(parentUUID?: string) {
+    this.parentUUID = parentUUID;
   }
 
   getHook(hook?: boolean) {

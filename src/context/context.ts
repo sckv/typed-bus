@@ -5,17 +5,17 @@ import asyncHooks from 'async_hooks';
 type Context = {
   traces: Map<number, Execution>;
   current?: Execution;
-  newContext: () => Execution;
+  newExecution: () => Execution;
   enable: () => asyncHooks.AsyncHook;
   enabled: boolean;
 };
 
 const prevStates = new Map();
 
-const context: Context = {
+export const context: Context = {
   traces: new Map<string, Execution>(),
   enabled: false,
-  newContext: () => {
+  newExecution: () => {
     context.current = new Execution();
     context.traces.set(asyncHooks.executionAsyncId(), context.current);
     return context.current;
@@ -50,16 +50,14 @@ function destroy(asyncId: number) {
   }
 }
 
-const hook = asyncHooks.createHook({
-  init,
-  before,
-  after,
-  destroy,
-});
-
-// enable by default
-// TODO: see implications
-// TODO: change to AsyncStorage
-hook.enable();
-
-export { context };
+asyncHooks
+  .createHook({
+    init,
+    before,
+    after,
+    destroy,
+  })
+  // enable by default
+  // TODO: see implications
+  // TODO: change to AsyncStorage
+  .enable();

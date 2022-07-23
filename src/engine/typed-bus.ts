@@ -133,7 +133,7 @@ export class TypedBusClass {
 
   storeInContext(event: Event): void {
     if (!context.current) {
-      context.newContext().addEvent(event);
+      context.newExecution().addEvent(event);
     } else {
       context.current.addEvent(event);
     }
