@@ -3,11 +3,11 @@ import * as iots from 'io-ts';
 import { isLeft } from 'fp-ts/lib/Either';
 
 import { Event } from './event';
-import { context } from './instance';
 
 import { EventBaseType } from '../validation/event-base-type';
 import { reporter } from '../validation/reporter';
 import { Execution } from '../context/execution';
+import { context } from '../context';
 
 export type MatchEvent = (event: Event) => 'ok' | { [k: string]: string };
 export type ConsumerMethod = {
