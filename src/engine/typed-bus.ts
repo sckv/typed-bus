@@ -7,7 +7,7 @@ import { EventsStore } from './events-store';
 import { DumpController } from './dump-controller';
 
 import { InternalTransport } from '../transports/internal-transport';
-import { context } from '../context/context';
+import { context } from '../context';
 
 const generateConsumerId = hyperid();
 
