@@ -1,4 +1,4 @@
-import LRUCache from 'lru-native2';
+import LRUCache from 'lru-cache';
 import * as iots from 'io-ts';
 import { isLeft } from 'fp-ts/lib/Either';
 
@@ -19,7 +19,7 @@ export type PublishedConsumer = {
   exec: any;
 };
 
-const cache = new LRUCache({ maxLoadFactor: 2, size: 10000, maxAge: 10000 });
+const cache = new LRUCache({ max: 10000, ttl: 10000 });
 
 export abstract class Transport {
   abstract name: string;
