@@ -16,6 +16,7 @@ class CustomSet<T> extends Set<T> {
 }
 export class Event<T = any> {
   uuid: string;
+  parentUUID?: string;
   hookId?: string;
   hookIdStale = false;
 
@@ -30,6 +31,7 @@ export class Event<T = any> {
     this.hookId = this.getHook(hook);
     this.timestamp = Date.now();
     this.payload = deepFreeze(payload);
+    this.parentUUID = context.current?.currentEvent?.uuid;
 
     Object.defineProperty(this, 'uuid', { writable: false, configurable: false });
     Object.defineProperty(this, 'timestamp', { writable: false, configurable: false });
