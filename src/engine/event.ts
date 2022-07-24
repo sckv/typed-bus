@@ -26,9 +26,9 @@ export class Event<T = any> {
   orphanTransports?: CustomSet<string>;
   publishedTransports?: CustomSet<string>;
 
-  private constructor(payload: any, hook?: boolean) {
+  private constructor(payload: any, startHook?: boolean) {
     this.uuid = uuidGenerate();
-    this.hookId = this.getHook(hook);
+    this.hookId = this.getHook(startHook);
     this.timestamp = Date.now();
     this.payload = deepFreeze(payload);
     this.parentUUID = context.current?.currentEvent?.uuid;
@@ -43,7 +43,7 @@ export class Event<T = any> {
     this.executionId = executionId;
   }
 
-  getHook(hook?: boolean) {
+  getHook(startHook?: boolean) {
     if (
       context.current?.currentEvent?.hookId &&
       context.current?.currentEvent?.hookIdStale === false
@@ -51,7 +51,7 @@ export class Event<T = any> {
       return context.current?.currentEvent?.hookId;
     }
 
-    return hook ? hookIdGenerate() : undefined;
+    return startHook ? hookIdGenerate() : undefined;
   }
 
   getUniqueStamp(transport?: string) {
@@ -99,7 +99,7 @@ export class Event<T = any> {
     this.publishedTransports.add(transport);
   }
 
-  static create<T>(payload: T, hook?: boolean) {
-    return new Event<T>(cloneDeep(payload), hook);
+  static create<T>(payload: T, startHook?: boolean) {
+    return new Event<T>(cloneDeep(payload), startHook);
   }
 }
