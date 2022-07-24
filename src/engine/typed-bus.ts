@@ -51,6 +51,9 @@ export class TypedBusClass {
           this.removeConsumer(consumerId);
           clearTimeout(timeoutRef);
 
+          // prevent dangling closure living variable
+          (consumerId as any) = undefined;
+
           resolve({ result: resultData, hookId: context.current?.currentEvent?.hookId });
         };
 
