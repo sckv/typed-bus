@@ -21,7 +21,7 @@ export type PublishedConsumer = {
   exec: any;
 };
 
-const cache = new LRUCache({ ttl: 10000, max: 10000 });
+const cache = new LRUCache({ max: 10000, ttl: 10000 });
 
 export abstract class Transport {
   abstract name: string;

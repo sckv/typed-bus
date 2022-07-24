@@ -4,9 +4,9 @@ import axios from 'axios';
 
 import { TypedBus } from '../instance';
 
-const app = new BareHttp();
+const app = new BareHttp({ serverPort: 3000 });
 
-app.get({
+app.route.get({
   route: '/route',
   handler: async (flex) => {
     const hookResponse = await TypedBus.publish(
