@@ -4,7 +4,7 @@ import { cloneDeep, isEqual } from 'lodash';
 
 import { deepFreeze } from './utils';
 
-import { context } from '../context/context';
+import { context } from '../context';
 
 const uuidGenerate = hyperid();
 const hookIdGenerate = hyperid();

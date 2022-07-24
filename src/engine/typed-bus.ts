@@ -7,7 +7,7 @@ import { EventsStore } from './events-store';
 import { DumpController } from './dump-controller';
 
 import { InternalTransport } from '../transports/internal-transport';
-import { context } from '../context/context';
+import { context } from '../context';
 
 const generateConsumerId = hyperid();
 
@@ -42,13 +42,14 @@ export class TypedBusClass {
     if (options.hook) {
       hookPromise = new Promise<any>((resolve, reject) => {
         let consumerId = '';
-        const timoutRef = setTimeout(() => {
+        const timeoutRef = setTimeout(() => {
+          clearTimeout(timeoutRef);
           reject(new Error(`Timeout exceeded for a waiting hook ${options.hook!.name}`));
         }, options.hookTimeout || 10000);
 
         const resolver = (resultData: unknown) => {
           this.removeConsumer(consumerId);
-          clearTimeout(timoutRef);
+          clearTimeout(timeoutRef);
 
           resolve({ result: resultData, hookId: context.current?.currentEvent?.hookId });
         };
