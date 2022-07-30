@@ -3,6 +3,7 @@ import hyperid from 'hyperid';
 import { cloneDeep, isEqual } from 'lodash';
 
 import { deepFreeze } from './utils';
+import { transportAsyncStorage } from './typed-bus';
 
 import { context } from '../context';
 
@@ -16,9 +17,10 @@ class CustomSet<T> extends Set<T> {
 }
 export class Event<T = any> {
   uuid: string;
-  parentUUID?: string;
+  rootUUID?: string;
   hookId?: string;
   hookIdStale = false;
+  launchedFrom?: string;
 
   executionId?: string;
   timestamp: number;
@@ -31,7 +33,8 @@ export class Event<T = any> {
     this.hookId = this.getHook(startHook);
     this.timestamp = Date.now();
     this.payload = deepFreeze(payload);
-    this.parentUUID = context.current?.currentEvent?.uuid;
+    this.rootUUID = context.current?.currentEvent?.rootUUID ?? context.current?.currentEvent?.uuid;
+    this.launchedFrom = transportAsyncStorage.getStore() as string;
 
     Object.defineProperty(this, 'uuid', { writable: false, configurable: false });
     Object.defineProperty(this, 'timestamp', { writable: false, configurable: false });

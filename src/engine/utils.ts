@@ -1,4 +1,4 @@
-export const deepFreeze = (objectToFreeze: any = {}, uuid?: string) => {
+export const deepFreeze = <T extends object>(objectToFreeze: T = {} as any, uuid?: string): T => {
   if (objectToFreeze instanceof Array) {
     objectToFreeze.forEach((item) => deepFreeze(item, uuid));
   } else {
