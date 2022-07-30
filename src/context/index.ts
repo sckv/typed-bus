@@ -43,8 +43,11 @@ function after(asyncId: number) {
   context.current = prevStates.get(asyncId);
 }
 
+let render = 0;
 function destroy(asyncId: number) {
   if (context.traces.has(asyncId)) {
+    console.log('render', render++);
+    console.log(context.traces.get(asyncId)?.events);
     context.traces.delete(asyncId);
     prevStates.delete(asyncId);
   }

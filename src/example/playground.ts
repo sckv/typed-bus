@@ -9,7 +9,7 @@ class Dump extends DumpController {
     super(1, 'single');
   }
   dump(event: Event<any>): Promise<void> {
-    console.log({ dumpedOrphanEvent: event.toJSON() });
+    console.log({ dumpedOrphanEvent: event });
     return Promise.resolve();
   }
 
@@ -18,7 +18,7 @@ class Dump extends DumpController {
   }
 }
 
-TypedBus.setEventsDumpController(new Dump(), 'orphan');
+// TypedBus.setEventsDumpController(new Dump(), 'used');
 class ConsumerTest {
   @Consume(iots.type({ name: iots.string, age: iots.number }))
   async justConsumer(data: any) {
@@ -38,16 +38,18 @@ class ConsumerTest {
     await TypedBus.publish({ some: 'event', is: 'orphan' });
     await TypedBus.publish({ hookProp: 'value', hookValue: 123 });
     console.log(TypedBus.orphanEventsStore);
+    console.log(TypedBus.usedEventsStore);
   }
 }
 
 new ConsumerTest();
 
-setTimeout(() => {
+setTimeout(async () => {
   TypedBus.publish({ name: 'test', age: 4 });
+  console.log('published event');
 }, 1500);
 
 setTimeout(() => {
   console.log('Exit');
-  TypedBus.stopDumpers();
+  TypedBus.publish({ name: 'test', age: 2 });
 }, 3000);

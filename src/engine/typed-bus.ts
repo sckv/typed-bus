@@ -1,5 +1,6 @@
 import * as iots from 'io-ts';
 import hyperid from 'hyperid';
+import callsites from 'callsites';
 
 import { Event } from './event';
 import { Transport } from './transport';
@@ -7,9 +8,13 @@ import { EventsStore } from './events-store';
 import { DumpController } from './dump-controller';
 
 import { InternalTransport } from '../transports/internal-transport';
-import { context } from '../context/context';
+import { context } from '../context';
+
+import { AsyncLocalStorage } from 'async_hooks';
 
 const generateConsumerId = hyperid();
+
+export const transportAsyncStorage = new AsyncLocalStorage();
 
 type PublishOptions<T> = {
   onlySendTo?: string[];
@@ -33,6 +38,7 @@ export class TypedBusClass {
     eventData: any,
     options: PublishOptions<T> = {},
   ): Promise<{ result: R; hookId: string }> {
+    console.log('async storage store', transportAsyncStorage.getStore());
     const publishedTransports: string[] = [];
     const event = Event.create(eventData, typeof options.hook !== undefined);
 
@@ -42,13 +48,17 @@ export class TypedBusClass {
     if (options.hook) {
       hookPromise = new Promise<any>((resolve, reject) => {
         let consumerId = '';
-        const timoutRef = setTimeout(() => {
+        const timeoutRef = setTimeout(() => {
+          clearTimeout(timeoutRef);
           reject(new Error(`Timeout exceeded for a waiting hook ${options.hook!.name}`));
         }, options.hookTimeout || 10000);
 
         const resolver = (resultData: unknown) => {
           this.removeConsumer(consumerId);
-          clearTimeout(timoutRef);
+          clearTimeout(timeoutRef);
+
+          // prevent dangling closure living variable
+          (consumerId as any) = undefined;
 
           resolve({ result: resultData, hookId: context.current?.currentEvent?.hookId });
         };
@@ -88,6 +98,7 @@ export class TypedBusClass {
         } else {
           event.addPublishedTransport(result.value.transport);
         }
+
         result.value.publishedConsumers?.forEach((value) => {
           if (value.status == 'rejected') {
             console.error(`Error in consumer named "${value.reason.execName}"`, value.reason);
@@ -149,13 +160,29 @@ export class TypedBusClass {
     exec: (...args: any[]) => any,
     options: { listenTo?: string[]; hookId?: string } = {},
   ) {
+    return this._addConsumer(contract, exec, options);
+  }
+
+  private _addConsumer(
+    contract: iots.Any,
+    exec: (...args: any[]) => any,
+    options: { listenTo?: string[]; hookId?: string } = {},
+    skipStackLevel = 0,
+  ) {
     const consumerId = generateConsumerId();
     const transportsList = options.listenTo?.length ? options.listenTo : ['internal'];
+    const site = callsites()[5 + skipStackLevel];
 
     let orphanConsumer = true;
     this.transports.forEach((transport) => {
       if (transportsList.includes(transport.name)) {
-        transport.addConsumer(contract, exec, consumerId, options.hookId);
+        transport.addConsumer(
+          contract,
+          exec,
+          consumerId,
+          site.getFileName()?.split('/').pop() + ':' + site.getLineNumber(),
+          options.hookId,
+        );
         orphanConsumer = false;
       }
 

@@ -3,8 +3,9 @@ import hyperid from 'hyperid';
 import { cloneDeep, isEqual } from 'lodash';
 
 import { deepFreeze } from './utils';
+import { transportAsyncStorage } from './typed-bus';
 
-import { context } from '../context/context';
+import { context } from '../context';
 
 const uuidGenerate = hyperid();
 const hookIdGenerate = hyperid();
@@ -16,8 +17,10 @@ class CustomSet<T> extends Set<T> {
 }
 export class Event<T = any> {
   uuid: string;
+  rootUUID?: string;
   hookId?: string;
   hookIdStale = false;
+  launchedFrom?: string;
 
   executionId?: string;
   timestamp: number;
@@ -25,11 +28,13 @@ export class Event<T = any> {
   orphanTransports?: CustomSet<string>;
   publishedTransports?: CustomSet<string>;
 
-  private constructor(payload: any, hook?: boolean) {
+  private constructor(payload: any, startHook?: boolean) {
     this.uuid = uuidGenerate();
-    this.hookId = this.getHook(hook);
+    this.hookId = this.getHook(startHook);
     this.timestamp = Date.now();
     this.payload = deepFreeze(payload);
+    this.rootUUID = context.current?.currentEvent?.rootUUID ?? context.current?.currentEvent?.uuid;
+    this.launchedFrom = transportAsyncStorage.getStore() as string;
 
     Object.defineProperty(this, 'uuid', { writable: false, configurable: false });
     Object.defineProperty(this, 'timestamp', { writable: false, configurable: false });
@@ -41,7 +46,7 @@ export class Event<T = any> {
     this.executionId = executionId;
   }
 
-  getHook(hook?: boolean) {
+  getHook(startHook?: boolean) {
     if (
       context.current?.currentEvent?.hookId &&
       context.current?.currentEvent?.hookIdStale === false
@@ -49,7 +54,7 @@ export class Event<T = any> {
       return context.current?.currentEvent?.hookId;
     }
 
-    return hook ? hookIdGenerate() : undefined;
+    return startHook ? hookIdGenerate() : undefined;
   }
 
   getUniqueStamp(transport?: string) {
@@ -97,7 +102,7 @@ export class Event<T = any> {
     this.publishedTransports.add(transport);
   }
 
-  static create<T>(payload: T, hook?: boolean) {
-    return new Event<T>(cloneDeep(payload), hook);
+  static create<T>(payload: T, startHook?: boolean) {
+    return new Event<T>(cloneDeep(payload), startHook);
   }
 }
